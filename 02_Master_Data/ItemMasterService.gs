@@ -222,3 +222,12 @@ function generateNextCodeLogic(inputCode, allData) {
     next: `${prefix}${String(nextNum).padStart(numberPart.length, '0')}`
   };
 }
+// --- [NEW] Helper: Get Spreadsheet URL ---
+function api_getSheetURL() {
+  try {
+    const ss = SpreadsheetApp.openById(ERP_CONFIG.INVENTORY_SPREADSHEET_ID);
+    return { success: true, url: ss.getUrl() };
+  } catch(e) {
+    return { success: false, message: e.message };
+  }
+}
