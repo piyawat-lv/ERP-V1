@@ -7,15 +7,16 @@
   <style>
     body { background-color: #f4f6f8; font-family: 'Segoe UI', Roboto, sans-serif; }
     .module-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .section-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     
-    /* Table Sections */
-    .section-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-    .section-title { font-weight: 700; color: #1565c0; border-bottom: 2px solid #e3f2fd; padding-bottom: 10px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center; }
+    /* Table Inputs */
+    .tbl-input { border: 1px solid #e0e0e0 !important; height: 2rem !important; padding: 0 5px !important; border-radius: 2px !important; font-size: 0.9rem !important; margin: 0 !important; }
+    .tbl-input:focus { border: 1px solid #2196f3 !important; box-shadow: none !important; }
+    .readonly-input { background-color: #f5f5f5; color: #616161; }
     
-    input { font-weight: 500; }
-    .param-input { border: 1px dashed #bdbdbd !important; background: #fafafa; padding: 0 5px !important; height: 2rem !important; }
-    
-    /* Views */
+    th { font-size: 0.85rem; color: #546e7a; background: #eceff1; }
+    td { padding: 5px 2px !important; }
+
     #listView, #formView { display: none; }
   </style>
 </head>
@@ -24,15 +25,15 @@
 <div class="module-container">
 
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-     <h5 style="margin:0; font-weight:800; color:#37474f;">BOM Management</h5>
-     <button class="btn btn-large indigo" onclick="openCreate()"><i class="material-icons left">add</i> New BOM</button>
+     <h5 style="margin:0; font-weight:800; color:#37474f;">BOM Management (Rev.02)</h5>
+     <button class="btn btn-large blue darken-2" onclick="openCreate()"><i class="material-icons left">add</i> New BOM</button>
   </div>
 
   <div id="listView" class="section-card">
-     <table class="highlight centered">
+     <table class="striped centered">
        <thead>
          <tr>
-           <th>BOM ID</th><th>Finished Good</th><th>Batch Size</th><th>Revision</th><th>Status</th><th>Action</th>
+           <th>BOM ID</th><th>Item Code</th><th>Item Name</th><th>Type</th><th>Batch Size</th><th>Rev</th><th>Status</th><th>Action</th>
          </tr>
        </thead>
        <tbody id="bom-list-tbody"></tbody>
@@ -41,71 +42,71 @@
 
   <div id="formView">
     
-    <div class="section-card" style="border-top: 5px solid #1565c0;">
-       <div style="display:flex; justify-content:space-between;">
-          <h5 style="margin:0;">BOM Configuration</h5>
+    <div class="section-card" style="border-top: 4px solid #1565c0;">
+       <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+          <h6 style="font-weight:700; margin:0;">BOM Header</h6>
           <button class="btn-flat red-text" onclick="closeForm()">Cancel</button>
        </div>
-       <br>
+       
        <input type="hidden" id="h-bom-id">
-       <div class="row">
-          <div class="col s12 m6">
-             <label>Select Finished Good (FG)</label>
-             <select id="h-fg" class="browser-default" onchange="onFGChange()"></select>
+       <div class="row" style="margin-bottom:0;">
+          <div class="col s12 m3">
+             <label>Item Code (FG/WIP)</label>
+             <input id="h-item-code" type="text" placeholder="Type Code..." onchange="lookupHeaderItem()">
+          </div>
+          <div class="col s12 m3">
+             <label>Item Name (Auto)</label>
+             <input id="h-item-name" type="text" readonly class="readonly-input">
+          </div>
+          <div class="col s12 m2">
+             <label>Type</label>
+             <select id="h-type" class="browser-default" style="height: 2.5rem; border:1px solid #cfd8dc;">
+                 <option value="FG">FG</option>
+                 <option value="WIP">WIP</option>
+             </select>
           </div>
           <div class="col s12 m2">
              <label>Batch Size</label>
              <input id="h-size" type="number" placeholder="100">
           </div>
           <div class="col s12 m2">
-             <label>Unit (UOM)</label>
-             <input id="h-uom" type="text" readonly value="KG" style="background:#eee;">
-          </div>
-          <div class="col s12 m2">
-             <label>Revision</label>
-             <input id="h-rev" type="text" value="Rev.01">
+             <label>UOM</label>
+             <select id="h-uom" class="browser-default" style="height: 2.5rem; border:1px solid #cfd8dc;">
+                 <option value="KGS">KGS</option>
+                 <option value="PCS">PCS</option>
+             </select>
           </div>
        </div>
     </div>
 
     <div class="section-card">
-       <div class="section-title">
-          <span><i class="material-icons left tiny">layers</i> Ingredients / Materials</span>
-          <button class="btn-small green lighten-1" onclick="addMaterialRow()"><i class="material-icons left">add</i> Add Material</button>
+       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h6 style="font-weight:700; margin:0;">BOM Details</h6>
+          <button class="btn-small green" onclick="addDetailRow()"><i class="material-icons left">add</i> Add Row</button>
        </div>
-       <table class="striped">
-          <thead>
-             <tr>
-                <th style="width:5%">#</th>
-                <th style="width:45%">Material Name</th>
-                <th style="width:20%">Qty</th>
-                <th style="width:15%">Unit</th>
-                <th style="width:15%">Action</th>
-             </tr>
-          </thead>
-          <tbody id="mat-tbody"></tbody>
-       </table>
-    </div>
-
-    <div class="section-card">
-       <div class="section-title">
-          <span><i class="material-icons left tiny">settings</i> Process & Machine Parameters</span>
-          <button class="btn-small orange lighten-1" onclick="addMachineRow()"><i class="material-icons left">add</i> Add Step</button>
-       </div>
-       <table class="striped">
+       
+       <table class="centered">
           <thead>
              <tr>
                 <th style="width:5%">Seq</th>
-                <th style="width:30%">Machine / Station</th>
-                <th style="width:15%">Time (Mins)</th>
-                <th style="width:40%">Parameters (Temp, Speed, etc.)</th> <th style="width:10%">Action</th>
+                <th style="width:15%">Work Description</th>
+                <th style="width:10%">Item Code</th>
+                <th style="width:15%">Item Name (Auto)</th>
+                <th style="width:10%">Station Code</th>
+                <th style="width:15%">Station Name (Auto)</th>
+                <th style="width:8%">Qty/Time</th>
+                <th style="width:7%">UOM</th>
+                <th style="width:10%">Parameters</th>
+                <th style="width:5%">Del</th>
              </tr>
           </thead>
-          <tbody id="mac-tbody"></tbody>
+          <tbody id="detail-tbody"></tbody>
        </table>
     </div>
 
-    <button id="btnSave" class="btn-large indigo w-100" style="width:100%; margin-bottom:50px;">Save BOM Configuration</button>
+    <button id="btnSave" class="btn-large blue darken-2 w-100" style="width:100%; margin-bottom:50px;">
+        <i class="material-icons left">save</i> Save BOM
+    </button>
 
   </div>
 
@@ -115,228 +116,211 @@
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  // Global Master Data
-  let masterData = { fgList: [], matList: [], machineList: [] };
+  // Global Data for VLOOKUP
+  let masterItems = [];
+  let masterStations = [];
 
-  document.addEventListener('DOMContentLoaded', () => { M.AutoInit(); initData(); });
+  document.addEventListener('DOMContentLoaded', () => { 
+      M.AutoInit(); 
+      initData(); 
+  });
 
   function initData() {
-     // Load Master Data first
      google.script.run.withSuccessHandler(data => {
-        masterData = data;
-        populateFGSelect();
+        masterItems = data.items;
+        masterStations = data.stations;
         loadBOMList();
      }).api_getMasterDataForBOM();
   }
 
-  function loadBOMList() {
-     google.script.run.withSuccessHandler(list => {
-        const tbody = document.getElementById('bom-list-tbody');
-        tbody.innerHTML = '';
-        if(list.length === 0) { tbody.innerHTML = '<tr><td colspan="6">No BOM Found</td></tr>'; }
-        
-        list.forEach(bom => {
-           const tr = document.createElement('tr');
-           tr.innerHTML = `
-             <td><b>${bom.bomId}</b></td>
-             <td>${bom.fgName} (${bom.fgCode})</td>
-             <td>${bom.batchSize}</td>
-             <td><span class="new badge grey" data-badge-caption="">${bom.revision}</span></td>
-             <td>${bom.status}</td>
-             <td><button class="btn-small btn-flat" onclick="editBOM('${bom.bomId}')"><i class="material-icons">edit</i></button></td>
-           `;
-           tbody.appendChild(tr);
-        });
-        document.getElementById('listView').style.display = 'block';
-        document.getElementById('formView').style.display = 'none';
-     }).api_getBOMList();
+  // --- Header Logic ---
+  function lookupHeaderItem() {
+      const code = document.getElementById('h-item-code').value.trim().toUpperCase();
+      const item = masterItems.find(i => i.code === code);
+      if(item) {
+          document.getElementById('h-item-name').value = item.name;
+          document.getElementById('h-item-code').value = item.code; // Format Case
+      } else {
+          document.getElementById('h-item-name').value = '';
+          M.toast({html: 'Item Code not found', classes: 'red'});
+      }
   }
 
-  // --- Dropdown Population ---
-  function populateFGSelect() {
-      const sel = document.getElementById('h-fg');
-      sel.innerHTML = '<option value="" disabled selected>Select Product</option>';
-      masterData.fgList.forEach(item => {
-          const opt = document.createElement('option');
-          opt.value = item.code;
-          opt.text = `${item.code} - ${item.name}`;
-          opt.dataset.uom = item.uom;
-          opt.dataset.name = item.name;
-          sel.appendChild(opt);
-      });
-  }
-  
-  function onFGChange() {
-      const sel = document.getElementById('h-fg');
-      const opt = sel.options[sel.selectedIndex];
-      document.getElementById('h-uom').value = opt.dataset.uom || 'Unit';
-  }
-
-  // --- Dynamic Rows: Material ---
-  function addMaterialRow(data = null) {
-      const tbody = document.getElementById('mat-tbody');
+  // --- Detail Logic ---
+  function addDetailRow(data = null) {
+      const tbody = document.getElementById('detail-tbody');
       const tr = document.createElement('tr');
-      
-      // Build Material Options
-      let opts = '<option value="" disabled selected>Select Material</option>';
-      masterData.matList.forEach(m => {
-          const selected = data && data.code === m.code ? 'selected' : '';
-          opts += `<option value="${m.code}" data-name="${m.name}" data-uom="${m.uom}" ${selected}>${m.code} - ${m.name}</option>`;
-      });
 
+      const seq = data ? data.seq : '';
+      const desc = data ? data.workDesc : '';
+      const iCode = data ? data.itemCode : '';
+      const iName = data ? data.itemName : '';
+      const sCode = data ? data.stationCode : '';
+      const sName = data ? data.stationName : '';
       const qty = data ? data.qty : '';
       const uom = data ? data.uom : '';
-
-      tr.innerHTML = `
-        <td class="row-seq"></td>
-        <td><select class="browser-default mat-select" onchange="updateRowUOM(this)">${opts}</select></td>
-        <td><input type="number" class="mat-qty" value="${qty}" placeholder="0.00"></td>
-        <td><input type="text" class="mat-uom" value="${uom}" readonly style="background:#eee; border:none;"></td>
-        <td><i class="material-icons red-text pointer" onclick="this.closest('tr').remove()" style="cursor:pointer;">delete</i></td>
-      `;
-      tbody.appendChild(tr);
-      updateSeq();
-  }
-
-  function updateRowUOM(select) {
-      const opt = select.options[select.selectedIndex];
-      const row = select.closest('tr');
-      row.querySelector('.mat-uom').value = opt.dataset.uom || '';
-  }
-
-  // --- Dynamic Rows: Machine ---
-  function addMachineRow(data = null) {
-      const tbody = document.getElementById('mac-tbody');
-      const tr = document.createElement('tr');
-
-      // Build Machine Options
-      let opts = '<option value="" disabled selected>Select Machine</option>';
-      masterData.machineList.forEach(m => {
-          const selected = data && data.code === m.code ? 'selected' : '';
-          opts += `<option value="${m.code}" data-name="${m.name}" ${selected}>${m.code} - ${m.name}</option>`;
-      });
-
-      const time = data ? data.qty : ''; // ใช้ field qty เก็บเวลา
       const params = data ? data.params : '';
 
       tr.innerHTML = `
-        <td class="row-seq-mac"></td>
-        <td><select class="browser-default mac-select">${opts}</select></td>
-        <td><input type="number" class="mac-time" value="${time}" placeholder="Min"></td>
-        <td><input type="text" class="mac-params param-input" value="${params}" placeholder="Ex. Temp: 80C, Speed: 50 rpm"></td>
-        <td><i class="material-icons red-text pointer" onclick="this.closest('tr').remove()" style="cursor:pointer;">delete</i></td>
+        <td><input type="text" class="tbl-input row-seq center-align" value="${seq}"></td>
+        <td><input type="text" class="tbl-input row-desc" value="${desc}"></td>
+        
+        <td><input type="text" class="tbl-input row-icode" value="${iCode}" onchange="lookupRowItem(this)"></td>
+        <td><input type="text" class="tbl-input readonly-input row-iname" value="${iName}" readonly></td>
+        
+        <td><input type="text" class="tbl-input row-scode" value="${sCode}" onchange="lookupRowStation(this)"></td>
+        <td><input type="text" class="tbl-input readonly-input row-sname" value="${sName}" readonly></td>
+        
+        <td><input type="number" class="tbl-input row-qty center-align" value="${qty}"></td>
+        <td><input type="text" class="tbl-input row-uom center-align" value="${uom}"></td>
+        <td><input type="text" class="tbl-input row-params" value="${params}"></td>
+        
+        <td><i class="material-icons red-text tiny" style="cursor:pointer" onclick="this.closest('tr').remove()">close</i></td>
       `;
       tbody.appendChild(tr);
-      updateSeq();
   }
 
-  function updateSeq() {
-     document.querySelectorAll('#mat-tbody tr').forEach((tr, i) => tr.querySelector('.row-seq').innerText = i + 1);
-     document.querySelectorAll('#mac-tbody tr').forEach((tr, i) => tr.querySelector('.row-seq-mac').innerText = i + 1);
+  // VLOOKUP for Row Item
+  function lookupRowItem(input) {
+      const code = input.value.trim().toUpperCase();
+      const tr = input.closest('tr');
+      const item = masterItems.find(i => i.code === code);
+      
+      if(item) {
+          input.value = item.code;
+          tr.querySelector('.row-iname').value = item.name;
+          // Auto fill UOM if empty
+          if(!tr.querySelector('.row-uom').value) tr.querySelector('.row-uom').value = item.uom;
+      } else {
+          tr.querySelector('.row-iname').value = '';
+          if(code) M.toast({html: 'Item not found', classes: 'red'});
+      }
   }
 
-  // --- Form Actions ---
+  // VLOOKUP for Row Station
+  function lookupRowStation(input) {
+      const code = input.value.trim().toUpperCase();
+      const tr = input.closest('tr');
+      const station = masterStations.find(s => s.code === code);
+      
+      if(station) {
+          input.value = station.code;
+          tr.querySelector('.row-sname').value = station.name;
+      } else {
+          tr.querySelector('.row-sname').value = '';
+          if(code) M.toast({html: 'Station not found', classes: 'red'});
+      }
+  }
+
+  // --- CRUD Actions ---
   function openCreate() {
       document.getElementById('h-bom-id').value = '';
-      document.getElementById('h-fg').value = '';
+      document.getElementById('h-item-code').value = '';
+      document.getElementById('h-item-name').value = '';
       document.getElementById('h-size').value = '';
-      document.getElementById('h-uom').value = '';
-      document.getElementById('mat-tbody').innerHTML = '';
-      document.getElementById('mac-tbody').innerHTML = '';
+      document.getElementById('detail-tbody').innerHTML = '';
+      addDetailRow(); // Add 1 empty row
       
-      document.getElementById('listView').style.display = 'none';
-      document.getElementById('formView').style.display = 'block';
+      toggleView('form');
   }
 
-  function closeForm() {
-      document.getElementById('listView').style.display = 'block';
-      document.getElementById('formView').style.display = 'none';
+  function closeForm() { toggleView('list'); }
+
+  function toggleView(view) {
+      document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
+      document.getElementById('formView').style.display = view === 'form' ? 'block' : 'none';
   }
 
-  window.editBOM = function(bomId) {
+  function loadBOMList() {
+      const tbody = document.getElementById('bom-list-tbody');
+      tbody.innerHTML = '<tr><td colspan="8">Loading...</td></tr>';
+      
+      google.script.run.withSuccessHandler(list => {
+          tbody.innerHTML = '';
+          if(list.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No Data</td></tr>'; return; }
+          
+          list.forEach(b => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td><b>${b.bomId}</b></td>
+                <td>${b.itemCode}</td>
+                <td class="left-align">${b.itemName}</td>
+                <td>${b.type}</td>
+                <td>${b.batchSize} ${b.batchUom}</td>
+                <td>${b.revision}</td>
+                <td>${b.status}</td>
+                <td><button class="btn-small btn-flat" onclick="editBOM('${b.bomId}')"><i class="material-icons">edit</i></button></td>
+              `;
+              tbody.appendChild(tr);
+          });
+          toggleView('list');
+      }).api_getBOMList();
+  }
+
+  window.editBOM = function(id) {
       google.script.run.withSuccessHandler(data => {
           if(!data) return;
           
-          // Set Header
+          // Header
           document.getElementById('h-bom-id').value = data.header.bomId;
-          document.getElementById('h-fg').value = data.header.fgCode;
+          document.getElementById('h-item-code').value = data.header.itemCode;
+          document.getElementById('h-item-name').value = data.header.itemName;
+          document.getElementById('h-type').value = data.header.type;
           document.getElementById('h-size').value = data.header.batchSize;
-          document.getElementById('h-uom').value = data.header.batchUOM;
-          document.getElementById('h-rev').value = data.header.revision;
+          document.getElementById('h-uom').value = data.header.batchUom;
           
-          // Clear Rows
-          document.getElementById('mat-tbody').innerHTML = '';
-          document.getElementById('mac-tbody').innerHTML = '';
+          // Details
+          const tbody = document.getElementById('detail-tbody');
+          tbody.innerHTML = '';
+          data.details.forEach(d => addDetailRow(d));
+          
+          toggleView('form');
+      }).api_getBOMDetail(id);
+  };
 
-          // Add Rows
-          data.details.forEach(d => {
-              if(d.type === 'Material') addMaterialRow(d);
-              if(d.type === 'Machine') addMachineRow(d);
-          });
-
-          document.getElementById('listView').style.display = 'none';
-          document.getElementById('formView').style.display = 'block';
-
-      }).api_getBOMDetail(bomId);
-  }
-
-  // --- Save Logic ---
+  // --- SAVE ---
   document.getElementById('btnSave').addEventListener('click', function() {
       const btn = this;
       
-      // Collect Header
-      const fgSelect = document.getElementById('h-fg');
-      if(!fgSelect.value) { Swal.fire('Error', 'Select FG Product', 'error'); return; }
-      
+      // Header Data
       const header = {
           bomId: document.getElementById('h-bom-id').value,
-          fgCode: fgSelect.value,
-          fgName: fgSelect.options[fgSelect.selectedIndex].dataset.name,
+          itemCode: document.getElementById('h-item-code').value.trim(),
+          itemName: document.getElementById('h-item-name').value,
+          type: document.getElementById('h-type').value,
           batchSize: document.getElementById('h-size').value,
-          batchUOM: document.getElementById('h-uom').value,
-          revision: document.getElementById('h-rev').value,
+          batchUom: document.getElementById('h-uom').value,
           status: 'Active'
       };
 
-      // Collect Details
+      if(!header.itemCode) { Swal.fire('Error', 'Please enter Item Code', 'error'); return; }
+
+      // Details Data
       const details = [];
-      
-      // Materials
-      document.querySelectorAll('#mat-tbody tr').forEach(tr => {
-         const sel = tr.querySelector('.mat-select');
-         if(sel.value) {
-             details.push({
-                 type: 'Material',
-                 code: sel.value,
-                 name: sel.options[sel.selectedIndex].dataset.name,
-                 qty: tr.querySelector('.mat-qty').value,
-                 uom: tr.querySelector('.mat-uom').value,
-                 params: ''
-             });
-         }
+      document.querySelectorAll('#detail-tbody tr').forEach(tr => {
+          const itemCode = tr.querySelector('.row-icode').value.trim();
+          const stationCode = tr.querySelector('.row-scode').value.trim();
+          
+          // ต้องมีอย่างน้อย 1 อย่าง (Item หรือ Station)
+          if(itemCode || stationCode) {
+              details.push({
+                  seq: tr.querySelector('.row-seq').value,
+                  workDesc: tr.querySelector('.row-desc').value,
+                  itemCode: itemCode,
+                  itemName: tr.querySelector('.row-iname').value,
+                  stationCode: stationCode,
+                  stationName: tr.querySelector('.row-sname').value,
+                  qty: tr.querySelector('.row-qty').value,
+                  uom: tr.querySelector('.row-uom').value,
+                  params: tr.querySelector('.row-params').value
+              });
+          }
       });
-
-      // Machines
-      document.querySelectorAll('#mac-tbody tr').forEach(tr => {
-         const sel = tr.querySelector('.mac-select');
-         if(sel.value) {
-             details.push({
-                 type: 'Machine',
-                 code: sel.value,
-                 name: sel.options[sel.selectedIndex].dataset.name,
-                 qty: tr.querySelector('.mac-time').value, // Use Qty field for Time
-                 uom: 'Mins',
-                 params: tr.querySelector('.mac-params').value // ** Parameter ที่นี่ **
-             });
-         }
-      });
-
-      if(details.length === 0) { Swal.fire('Warning', 'Add at least one material or process', 'warning'); return; }
 
       btn.disabled = true; btn.innerText = 'Saving...';
-
+      
       google.script.run.withSuccessHandler(res => {
-          btn.disabled = false; btn.innerText = 'Save BOM Configuration';
+          btn.disabled = false; btn.innerHTML = '<i class="material-icons left">save</i> Save BOM';
           if(res.success) {
               Swal.fire('Success', 'BOM Saved!', 'success');
               closeForm();
