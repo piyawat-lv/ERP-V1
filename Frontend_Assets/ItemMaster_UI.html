@@ -7,131 +7,43 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
   
   <style>
-     :root {
-        --primary-color: #2c3e50; /* Dark Blue-Grey */
-        --accent-color: #3498db;  /* Bright Blue */
-        --bg-color: #f8f9fa;
-     }
+     :root { --primary: #2c3e50; --accent: #3498db; --bg: #f8f9fa; }
+     body { background-color: var(--bg); font-family: 'Roboto', sans-serif; color: #333; }
+     .module-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
 
-     body { 
-        background-color: var(--bg-color); 
-        font-family: 'Roboto', sans-serif; 
-        color: #333;
-     }
-
-     .module-container { 
-        max-width: 1200px; 
-        margin: 0 auto; 
-        padding: 20px; 
-     }
-
-     /* Header Styles */
-     .header-section {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 30px;
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-     }
-
-     .page-title h5 {
-        margin: 0;
-        font-weight: 700;
-        color: var(--primary-color);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-     }
+     /* Header */
+     .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+     .page-title h5 { margin: 0; font-weight: 700; color: var(--primary); text-transform: uppercase; }
+     .btn-act { margin-left: 8px; border-radius: 4px; font-weight: 600; text-transform: none; box-shadow: none; }
      
-     .page-title span {
-        font-size: 0.9rem;
-        color: #7f8c8d;
-     }
-
-     .action-buttons .btn {
-        margin-left: 8px;
-        border-radius: 4px;
-        font-weight: 600;
-        box-shadow: none;
-        text-transform: none; /* อ่านง่ายขึ้น */
-     }
+     /* Stats & Search */
+     .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
+     .stat-card { background: white; padding: 20px; border-radius: 8px; border-left: 5px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+     .stat-val { font-size: 2rem; font-weight: 700; color: var(--primary); margin: 10px 0; }
      
-     .btn-link { background-color: #fff; color: #555; border: 1px solid #ddd; }
-     .btn-link:hover { background-color: #f5f5f5; }
-     .btn-refresh { background-color: #f39c12; }
-     .btn-new { background-color: #27ae60; }
-
-     /* Dashboard Stats */
-     .stats-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-     }
-
-     .stat-card {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        border-left: 5px solid var(--accent-color);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-     }
-     
-     .stat-title { font-size: 0.8rem; font-weight: 700; color: #95a5a6; text-transform: uppercase; }
-     .stat-value { font-size: 2rem; font-weight: 700; color: var(--primary-color); margin: 10px 0; }
-     
-     /* Search Bar */
-     .search-wrapper {
-        background: white;
-        padding: 10px 20px;
-        border-radius: 50px;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        margin-bottom: 20px;
-        border: 1px solid #eee;
-     }
-     
-     .search-wrapper input {
-        border: none !important;
-        box-shadow: none !important;
-        margin: 0 !important;
-        padding-left: 10px;
-     }
+     .search-wrapper { background: white; padding: 10px 20px; border-radius: 50px; display: flex; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
+     .search-wrapper input { border: none !important; box-shadow: none !important; margin: 0 !important; }
 
      /* Table */
-     .table-card {
-        background: white;
-        border-radius: 8px;
-        padding: 0;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-     }
-     
+     .table-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
      table.striped thead { background-color: #ecf0f1; }
-     table.striped th { color: #555; font-weight: 600; font-size: 0.9rem; padding: 15px 10px; }
-     table.striped td { padding: 12px 10px; font-size: 0.95rem; }
-     
-     /* Status Badges */
-     .badge-status { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+     th { color: #555; font-weight: 600; font-size: 0.9rem; padding: 15px 10px; }
+     td { padding: 12px 10px; font-size: 0.95rem; }
+     .badge-st { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
      .st-active { color: #27ae60; background: #eafaf1; }
      .st-inactive { color: #c0392b; background: #fdedec; }
-
+     
      /* Form View */
      #formView { display: none; }
-     .form-header {
-        background: #ecf0f1;
-        padding: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #ddd;
-     }
+     .form-header { background: #ecf0f1; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; }
      
-     .file-item { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 8px 12px; margin-bottom: 5px; border-radius: 4px; border:1px solid #eee;}
-     .file-item a { text-decoration: none; color: #3498db; font-weight: 500; }
+     /* Helper Link */
+     .check-dup-link { cursor: pointer; color: #0288d1; font-weight: bold; display: inline-flex; align-items: center; font-size: 0.85rem; text-decoration: none; transition: 0.3s; }
+     .check-dup-link:hover { color: #01579b; text-decoration: underline; }
+     
+     /* Loading Spinner in Button */
+     .spin { animation: spin 1s linear infinite; }
+     @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -141,78 +53,58 @@
   <div class="header-section">
      <div class="page-title">
         <h5>Item Master</h5>
-        <span>Manage Product & Inventory Data</span>
+        <span class="grey-text">Inventory Management</span>
      </div>
-     <div class="action-buttons">
-       <button class="btn btn-link waves-effect" onclick="openSpreadsheet()" title="Open Google Sheet">
-         <i class="material-icons left blue-text">table_view</i> Data
-       </button>
-       <button class="btn btn-refresh waves-effect" onclick="refreshCost()">
-         <i class="material-icons left">sync</i> Refresh Cost
-       </button>
-       <button class="btn btn-new waves-effect" onclick="openCreate()">
-         <i class="material-icons left">add</i> New Item
-       </button>
+     <div>
+       <button class="btn btn-act white grey-text text-darken-2 border" onclick="openSpreadsheet()"><i class="material-icons left">table_view</i> Data</button>
+       <button class="btn btn-act orange darken-2" onclick="refreshCost()"><i class="material-icons left">sync</i> Cost</button>
+       <button class="btn btn-act green darken-1" onclick="openCreate()"><i class="material-icons left">add</i> New</button>
      </div>
   </div>
 
   <div id="mainView">
-      
       <div class="stats-container">
-          <div class="stat-card" style="border-color: #3498db;">
-              <div class="stat-title">Total Items</div>
-              <div class="stat-value" id="d-total">-</div>
-          </div>
-          <div class="stat-card" style="border-color: #2ecc71;">
-              <div class="stat-title">Active Status</div>
-              <div id="d-status-list" style="margin-top:10px; font-size:0.9rem;">Loading...</div>
-          </div>
-          <div class="stat-card" style="border-color: #f1c40f;">
-              <div class="stat-title">Categories</div>
-              <div id="d-cat-list" style="margin-top:10px; font-size:0.9rem;">Loading...</div>
-          </div>
+          <div class="stat-card" style="border-color:#3498db;"><span class="grey-text">Total Items</span><div class="stat-val" id="d-total">-</div></div>
+          <div class="stat-card" style="border-color:#2ecc71;"><span class="grey-text">Active</span><div class="stat-val" id="d-active">-</div></div>
+          <div class="stat-card" style="border-color:#f1c40f;"><span class="grey-text">Categories</span><div class="stat-val" id="d-cat">-</div></div>
       </div>
 
       <div class="search-wrapper">
           <i class="material-icons grey-text">search</i>
-          <input id="search-input" type="text" placeholder="Search by Keyword: Name, Code, Supplier, Status... (Press Enter)">
+          <input id="search-input" type="text" placeholder="Search keywords: Name, Code, Source...">
           <button class="btn-flat blue-text" style="font-weight:bold;" onclick="filterTable()">Search</button>
       </div>
 
       <div class="table-card">
           <div style="overflow-x:auto;">
              <table class="striped centered">
-               <thead>
-                 <tr>
-                   <th>Code</th><th>Name</th><th>Allergen</th><th>Source</th><th>Supplier</th><th>Status</th><th>Files</th><th>Action</th>
-                 </tr>
-               </thead>
+               <thead><tr><th>Code</th><th>Name</th><th>Allergen</th><th>Source</th><th>Supplier</th><th>Status</th><th>Files</th><th>Action</th></tr></thead>
                <tbody id="item-tbody"></tbody>
              </table>
           </div>
-          <div style="padding:10px 20px; text-align:right; font-size:0.8rem; color:#888;" id="result-count"></div>
+          <div id="result-count" style="padding:10px 20px; text-align:right; font-size:0.8rem; color:#888;"></div>
       </div>
   </div>
 
   <div id="formView" class="card" style="border-radius:8px; overflow:hidden;">
       <div class="form-header">
           <h5 style="margin:0; font-weight:700; color:#2c3e50;">Item Details</h5>
-          <button class="btn-flat red-text" style="font-weight:bold;" onclick="closeForm()">
-             <i class="material-icons left">close</i> Cancel
-          </button>
+          <button class="btn-flat red-text" style="font-weight:bold;" onclick="closeForm()"><i class="material-icons left">close</i> Cancel</button>
       </div>
 
       <div style="padding: 30px;">
         <input type="hidden" id="edit-id">
         <input type="hidden" id="existing-files-json"> 
 
-        <h6 class="blue-text" style="font-weight:bold; margin-bottom:20px;">Basic Information</h6>
+        <h6 class="blue-text text-darken-2" style="font-weight:bold; margin-bottom:20px;">Basic Information</h6>
         <div class="row">
             <div class="col s12 m4 input-field">
                 <input id="i-code" type="text" style="text-transform:uppercase;">
                 <label for="i-code">Item Code</label>
-                <span class="helper-text" data-error="wrong" data-success="right">
-                    <a href="#" onclick="manualCheckCode()">Check Duplicate</a>
+                <span class="helper-text">
+                    <a id="btn-check-dup" class="check-dup-link" href="javascript:void(0)" onclick="manualCheckCode()">
+                        <i class="material-icons tiny left" style="font-size:1rem; margin-right:4px;">search</i> Check Duplicate
+                    </a>
                 </span>
             </div>
             <div class="col s12 m8 input-field">
@@ -224,38 +116,22 @@
         <div class="row" style="background:#f8f9fa; padding:15px; border-radius:8px;">
             <div class="col s12 m4">
                 <label>Category</label>
-                <select id="i-cat" class="browser-default">
-                   <option value="" disabled selected>Select</option>
-                   <option value="Raw Material">Raw Material</option>
-                   <option value="Packaging">Packaging</option>
-                   <option value="Finished Good">Finished Good</option>
-                   <option value="WIP">WIP</option>
-                </select>
+                <select id="i-cat" class="browser-default"><option value="" disabled selected>Select</option><option value="Raw Material">Raw Material</option><option value="Packaging">Packaging</option><option value="Finished Good">Finished Good</option><option value="WIP">WIP</option></select>
             </div>
             <div class="col s12 m4">
-                <label>Allergen Status</label>
-                <select id="i-allergen" class="browser-default">
-                   <option value="Non-Allergen">Non-Allergen</option>
-                   <option value="Allergen">Allergen</option>
-                </select>
+                <label>Allergen</label>
+                <select id="i-allergen" class="browser-default"><option value="Non-Allergen">Non-Allergen</option><option value="Allergen">Allergen</option></select>
             </div>
             <div class="col s12 m4">
                 <label>Status</label>
-                <select id="i-status" class="browser-default">
-                   <option value="Active">Active</option>
-                   <option value="Inactive">Inactive</option>
-                </select>
+                <select id="i-status" class="browser-default"><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
             </div>
         </div>
 
         <div class="row" style="margin-top:20px;">
             <div class="col s12 m6">
                 <label>Source Type</label>
-                <select id="i-source" class="browser-default" onchange="toggleSupplierUI()">
-                    <option value="Purchase">Purchase (ซื้อ)</option>
-                    <option value="Produce">Produce (ผลิต)</option>
-                    <option value="Customer">Customer (ลูกค้า)</option> 
-                </select>
+                <select id="i-source" class="browser-default" onchange="toggleSupplierUI()"><option value="Purchase">Purchase</option><option value="Produce">Produce</option><option value="Customer">Customer</option></select>
             </div>
             <div class="col s12 m6 input-field">
                 <input id="i-supplier" type="text">
@@ -264,36 +140,16 @@
         </div>
 
         <div class="row" style="background:#e3f2fd; padding:20px; border-radius:8px; margin-top:20px;">
-             <div class="col s12 m4 input-field">
-                 <input id="i-temp" type="text">
-                 <label for="i-temp">Storage Temp (°C)</label>
-             </div>
-             <div class="col s12 m4 input-field">
-                 <input id="i-rh" type="text">
-                 <label for="i-rh">Humidity (%RH)</label>
-             </div>
-             <div class="col s12 m4">
-                 <label>Attach Spec/COA (PDF)</label>
-                 <input type="file" id="i-files" multiple accept="application/pdf" style="margin-top:5px;">
-             </div>
+             <div class="col s12 m4 input-field"><input id="i-temp" type="text"><label for="i-temp">Temp (°C)</label></div>
+             <div class="col s12 m4 input-field"><input id="i-rh" type="text"><label for="i-rh">Humidity (%RH)</label></div>
+             <div class="col s12 m4"><label>Attach Files (PDF)</label><input type="file" id="i-files" multiple accept="application/pdf" style="margin-top:5px;"></div>
              <div class="col s12" id="existing-files-container" style="margin-top:15px;"></div>
         </div>
 
         <div class="row" style="margin-top:20px;">
-           <div class="col s12 m4">
-                <label>UOM</label>
-                <select id="i-uom" class="browser-default">
-                    <option value="PCS">PCS</option><option value="KGS">KGS</option><option value="ROL">ROL</option>
-                </select>
-           </div>
-           <div class="col s12 m4 input-field">
-               <input id="i-cost" type="number" step="0.01">
-               <label for="i-cost">Standard Cost</label>
-           </div>
-           <div class="col s12 m4 input-field">
-               <input id="i-safety" type="number">
-               <label for="i-safety">Safety Stock</label>
-           </div>
+           <div class="col s12 m4"><label>UOM</label><select id="i-uom" class="browser-default"><option value="PCS">PCS</option><option value="KGS">KGS</option><option value="ROL">ROL</option></select></div>
+           <div class="col s12 m4 input-field"><input id="i-cost" type="number" step="0.01"><label for="i-cost">Std Cost</label></div>
+           <div class="col s12 m4 input-field"><input id="i-safety" type="number"><label for="i-safety">Safety Stock</label></div>
         </div>
 
         <div class="divider" style="margin:30px 0;"></div>
@@ -314,38 +170,98 @@
 
   document.addEventListener('DOMContentLoaded', () => { 
       M.AutoInit(); 
-      M.updateTextFields(); // Fix label overlapping
+      M.updateTextFields();
       loadDashboard();
-      
-      // Enter Key Search
-      document.getElementById('search-input').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') filterTable();
-      });
+      document.getElementById('search-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') filterTable(); });
   });
 
-  // --- 1. Load Data ---
+  // =========================================================
+  // 1. UPDATED Check Duplicate Logic (ตาม Requirement)
+  // =========================================================
+  function manualCheckCode() {
+      const codeInput = document.getElementById('i-code');
+      const code = codeInput.value.trim();
+      const btn = document.getElementById('btn-check-dup');
+      const originalText = btn.innerHTML;
+
+      if(!code) {
+          M.toast({html: '⚠️ Please enter Code first', classes: 'orange'});
+          return;
+      }
+
+      // UI Loading
+      btn.innerHTML = '<i class="material-icons tiny left spin" style="font-size:1rem; margin-right:4px;">sync</i> Checking...';
+      btn.style.pointerEvents = 'none'; // Disable click
+
+      google.script.run
+        .withSuccessHandler(res => {
+            // Reset Button
+            btn.innerHTML = originalText;
+            btn.style.pointerEvents = 'auto';
+
+            if (res.status === 'AVAILABLE') {
+                // ✅ Case: Available
+                M.toast({html: res.message, classes: 'green'});
+                codeInput.classList.remove('invalid');
+                codeInput.classList.add('valid');
+            } else {
+                // ❌ Case: Duplicate
+                codeInput.classList.remove('valid');
+                codeInput.classList.add('invalid');
+                
+                // Show Alert with Suggestion (ถ้ามี)
+                if (res.nextCode) {
+                    Swal.fire({
+                        title: 'Duplicate Code!',
+                        html: `
+                            <div style="text-align:left;">
+                                <p style="color:#d32f2f; font-weight:bold;">${res.message}</p>
+                                <p class="grey-text">${res.detail}</p>
+                                <div style="background:#e3f2fd; padding:10px; border-radius:4px; margin-top:10px; border:1px solid #90caf9;">
+                                    Use Next: <b>${res.nextCode}</b> ?
+                                </div>
+                            </div>
+                        `,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: `Yes, Use ${res.nextCode}`,
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            codeInput.value = res.nextCode;
+                            M.updateTextFields();
+                            manualCheckCode(); // Re-check to confirm green status
+                        }
+                    });
+                } else {
+                    // Duplicate แต่ไม่มี Suggestion
+                    M.toast({html: res.message, classes: 'red'});
+                }
+            }
+        })
+        .withFailureHandler(err => {
+            btn.innerHTML = originalText;
+            btn.style.pointerEvents = 'auto';
+            Swal.fire('Error', err.message, 'error');
+        })
+        .api_checkItemCode(code);
+  }
+
+  // --- Load Data ---
   function loadDashboard() {
      const tbody = document.getElementById('item-tbody');
-     tbody.innerHTML = '<tr><td colspan="8" class="center-align">Loading data...</td></tr>';
+     tbody.innerHTML = '<tr><td colspan="8">Loading...</td></tr>';
      
      google.script.run.withSuccessHandler(data => {
-        allItems = data.items || []; // Assume backend returns { items: [], stats: {} } or handle accordingly
-        // If backend returns array directly:
-        if(Array.isArray(data)) allItems = data;
-
+        allItems = Array.isArray(data) ? data : (data.items || []);
         renderTable(allItems);
         
-        // Render Stats (Simple Count)
         document.getElementById('d-total').innerText = allItems.length;
-        
-        // Calculate Stats
-        const activeCount = allItems.filter(i => i.status === 'Active').length;
-        document.getElementById('d-status-list').innerText = `Active: ${activeCount} / Inactive: ${allItems.length - activeCount}`;
-        
+        const active = allItems.filter(i => i.status === 'Active').length;
+        document.getElementById('d-active').innerText = active;
         const cats = [...new Set(allItems.map(i => i.category))];
-        document.getElementById('d-cat-list').innerText = cats.join(', ');
-
-     }).api_getAllItems(); // Make sure this function returns array of items
+        document.getElementById('d-cat').innerText = cats.length;
+     }).api_getAllItems();
   }
 
   function renderTable(items) {
@@ -353,97 +269,81 @@
      tbody.innerHTML = '';
      document.getElementById('result-count').innerText = `Total: ${items.length} records`;
 
-     if(items.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No Data Found</td></tr>'; return; }
+     if(items.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No Data</td></tr>'; return; }
 
      items.forEach(item => {
         const tr = document.createElement('tr');
         tr.dataset.json = JSON.stringify(item);
         
-        const fileCount = item.files && item.files[0] !== "" ? item.files.length : 0;
+        const fileCount = item.files && item.files[0] ? item.files.length : 0;
         const fileBadge = fileCount > 0 ? `<span class="new badge blue" data-badge-caption="">${fileCount}</span>` : '-';
-        
-        // Status Badge
-        let statusCls = item.status === 'Active' ? 'st-active' : 'st-inactive';
+        const stClass = item.status === 'Active' ? 'st-active' : 'st-inactive';
 
         tr.innerHTML = `
-          <td><b>${item.code}</b></td>
-          <td class="left-align">${item.name}</td>
-          <td>${item.allergen || '-'}</td>
-          <td>${item.source}</td>
-          <td>${item.supplier || '-'}</td>
-          <td><span class="badge-status ${statusCls}">${item.status}</span></td>
+          <td><b>${item.code}</b></td><td class="left-align">${item.name}</td><td>${item.allergen||'-'}</td>
+          <td>${item.source}</td><td>${item.supplier||'-'}</td><td><span class="badge-st ${stClass}">${item.status}</span></td>
           <td>${fileBadge}</td>
-          <td>
-             <button class="btn-small btn-flat waves-effect" onclick="editItem(this)">
-                <i class="material-icons blue-text">edit</i>
-             </button>
-          </td>
+          <td><button class="btn-small btn-flat" onclick="editItem(this)"><i class="material-icons blue-text">edit</i></button></td>
         `;
         tbody.appendChild(tr);
      });
   }
 
-  // --- 2. Search Logic ---
   function filterTable() {
       const input = document.getElementById('search-input').value.trim().toUpperCase();
       let filtered = [];
-      
       if (input.endsWith('*') && input.length > 1) {
           const prefix = input.slice(0, -1);
           filtered = allItems.filter(item => item.code.toUpperCase().startsWith(prefix));
       } else {
           filtered = allItems.filter(item => {
-              const text = `${item.code} ${item.name} ${item.source} ${item.supplier || ''} ${item.status} ${item.allergen}`.toUpperCase();
-              return text.includes(input);
+              const txt = `${item.code} ${item.name} ${item.source} ${item.supplier} ${item.status}`.toUpperCase();
+              return txt.includes(input);
           });
       }
       renderTable(filtered);
   }
 
-  // --- 3. Actions ---
+  // --- Actions ---
   function openSpreadsheet() {
       google.script.run.withSuccessHandler(res => {
-          if(res.success) window.open(res.url, '_blank');
-          else M.toast({html: 'Error: ' + res.message});
+          if(res.success) window.open(res.url, '_blank'); else M.toast({html: 'Error URL'});
       }).api_getSheetURL();
   }
-
   function refreshCost() {
-      Swal.fire({title:'Syncing Cost', text:'Calculating from Stock...', didOpen:()=>Swal.showLoading()});
+      Swal.fire({title:'Syncing Cost...', didOpen:()=>Swal.showLoading()});
       google.script.run.withSuccessHandler(res => {
          Swal.close();
-         if(res.success) {
-            Swal.fire('Done', res.message, 'success');
-            loadDashboard(); // Reload
-         } else {
-            Swal.fire('Error', res.message, 'error');
-         }
+         if(res.success) { Swal.fire('Done', res.message, 'success'); loadDashboard(); }
+         else Swal.fire('Error', res.message, 'error');
       }).api_recalcAverageCost();
   }
 
-  // --- 4. Form Logic ---
+  // --- Form Logic ---
   function openCreate() {
       document.getElementById('edit-id').value = '';
-      document.querySelectorAll('input').forEach(i => i.value = '');
+      document.querySelectorAll('input').forEach(i => { i.value = ''; i.classList.remove('valid','invalid'); });
       document.getElementById('existing-files-container').innerHTML = '';
       currentExistingFiles = [];
-      
-      // Toggle Views
       document.getElementById('mainView').style.display = 'none';
       document.getElementById('formView').style.display = 'block';
-      
       M.updateTextFields();
-      window.scrollTo(0, 0);
+      window.scrollTo(0,0);
   }
-  
   function closeForm() {
       document.getElementById('formView').style.display = 'none';
       document.getElementById('mainView').style.display = 'block';
   }
+  function toggleSupplierUI() {
+      const source = document.getElementById('i-source').value;
+      const supInput = document.getElementById('i-supplier');
+      if(source === 'Produce') { supInput.disabled=true; supInput.value='In-House'; }
+      else { supInput.disabled=false; if(supInput.value==='In-House') supInput.value=''; }
+      M.updateTextFields();
+  }
 
   window.editItem = function(btn) {
       const item = JSON.parse(btn.closest('tr').dataset.json);
-      
       document.getElementById('edit-id').value = item.id;
       document.getElementById('i-code').value = item.code;
       document.getElementById('i-name').value = item.name;
@@ -458,42 +358,32 @@
       document.getElementById('i-temp').value = item.storageTemp || '';
       document.getElementById('i-rh').value = item.storageRH || '';
       
-      // Files
-      currentExistingFiles = (item.files && item.files[0] !== "") ? item.files : [];
+      currentExistingFiles = (item.files && item.files[0]) ? item.files : [];
       renderExistingFiles();
 
       document.getElementById('mainView').style.display = 'none';
       document.getElementById('formView').style.display = 'block';
-      
+      M.updateTextFields();
       toggleSupplierUI();
-      M.updateTextFields(); // Important for Materialize input labels
-      window.scrollTo(0, 0);
+      window.scrollTo(0,0);
   };
 
   function renderExistingFiles() {
-      const container = document.getElementById('existing-files-container');
-      container.innerHTML = '';
-      if(currentExistingFiles.length === 0) return;
-      
-      let html = '<label>Attached Files:</label>';
-      currentExistingFiles.forEach((fString, index) => {
-          const parts = fString.split('|');
-          const fUrl = 'https://drive.google.com/uc?id=' + parts[0] + '&export=view';
-          html += `
-            <div class="file-item">
-               <a href="${fUrl}" target="_blank"><i class="material-icons tiny">picture_as_pdf</i> ${parts[1] || 'File'}</a>
-               <i class="material-icons tiny delete-file" onclick="removeFile(${index})">delete</i>
-            </div>`;
+      const c = document.getElementById('existing-files-container');
+      c.innerHTML = '';
+      if(!currentExistingFiles.length) return;
+      let h = '<label>Current Files:</label>';
+      currentExistingFiles.forEach((f, i) => {
+          const p = f.split('|');
+          h += `<div style="background:#eee; padding:5px; margin:2px 0; border-radius:4px; display:flex; justify-content:space-between;">
+                  <a href="https://drive.google.com/uc?id=${p[0]}&export=view" target="_blank">${p[1]||'File'}</a>
+                  <i class="material-icons tiny red-text" style="cursor:pointer;" onclick="rmFile(${i})">close</i>
+                </div>`;
       });
-      container.innerHTML = html;
+      c.innerHTML = h;
   }
-  
-  function removeFile(index) {
-      currentExistingFiles.splice(index, 1);
-      renderExistingFiles();
-  }
+  function rmFile(i) { currentExistingFiles.splice(i, 1); renderExistingFiles(); }
 
-  // --- Save Logic ---
   const toBase64 = file => new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -502,24 +392,20 @@
   });
 
   document.getElementById('btnSave').addEventListener('click', async function() {
-      const btn = this; btn.disabled = true; btn.innerText = 'Processing...';
+      const btn = this; btn.disabled = true; btn.innerText = 'Saving...';
       
       const fileInput = document.getElementById('i-files');
-      const newFilesToUpload = [];
+      const newFiles = [];
       if (fileInput.files.length > 0) {
-          for (let i = 0; i < fileInput.files.length; i++) {
-              const base64 = await toBase64(fileInput.files[i]);
-              newFilesToUpload.push({
-                  name: fileInput.files[i].name,
-                  type: fileInput.files[i].type,
-                  data: base64.split(',')[1]
-              });
+          for (let i=0; i<fileInput.files.length; i++) {
+              const b64 = await toBase64(fileInput.files[i]);
+              newFiles.push({ name: fileInput.files[i].name, type: fileInput.files[i].type, data: b64.split(',')[1] });
           }
       }
 
       const itemData = {
           id: document.getElementById('edit-id').value,
-          code: document.getElementById('i-code').value.trim(),
+          code: document.getElementById('i-code').value,
           name: document.getElementById('i-name').value,
           category: document.getElementById('i-cat').value,
           status: document.getElementById('i-status').value,
@@ -532,40 +418,15 @@
           storageTemp: document.getElementById('i-temp').value,
           storageRH: document.getElementById('i-rh').value,
           existingFiles: currentExistingFiles,
-          newFiles: newFilesToUpload
+          newFiles: newFiles
       };
 
       google.script.run.withSuccessHandler(res => {
           btn.disabled = false; btn.innerHTML = '<i class="material-icons left">save</i> Save Item';
-          if(res.success) { 
-              Swal.fire('Saved', '', 'success'); 
-              closeForm(); 
-              loadDashboard(); 
-          }
+          if(res.success) { Swal.fire('Saved','','success'); closeForm(); loadDashboard(); }
           else { Swal.fire('Error', res.message, 'error'); }
       }).api_saveItem(itemData);
   });
-
-  function toggleSupplierUI() {
-      const source = document.getElementById('i-source').value;
-      const supInput = document.getElementById('i-supplier');
-      if(source === 'Produce') {
-          supInput.disabled = true;
-          supInput.value = 'In-House';
-      } else {
-          supInput.disabled = false;
-          if(supInput.value === 'In-House') supInput.value = '';
-      }
-      M.updateTextFields();
-  }
-  
-  function manualCheckCode() {
-      const code = document.getElementById('i-code').value;
-      if(!code) return M.toast({html: 'Enter Code first'});
-      google.script.run.withSuccessHandler(res => {
-          M.toast({html: res.message, classes: res.status==='AVAILABLE'?'green':'red'});
-      }).api_checkItemCode(code);
-  }
 </script>
 
 </body>
