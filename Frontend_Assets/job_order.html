@@ -9,91 +9,135 @@
     .module-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
     .section-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     
-    /* Badges */
-    .badge-status { padding: 5px 10px; border-radius: 4px; font-weight: bold; color: white; font-size: 0.8rem; }
-    .st-planned { background-color: #90a4ae; }
-    .st-wip { background-color: #ffa726; }
-    .st-completed { background-color: #66bb6a; }
-    .st-cancelled { background-color: #ef5350; }
+    /* Tabs */
+    .tabs .tab a { color: #00838f; font-weight: 600; } /* Teal-ish */
+    .tabs .tab a:focus, .tabs .tab a:hover { background-color: rgba(0, 131, 143, 0.1); }
+    .tabs .indicator { background-color: #00838f; }
 
-    #listView, #formView { display: none; }
+    .view-section { display: none; padding-top: 20px; }
+    .active-view { display: block; }
+
+    th { background: #eceff1; font-size: 0.85rem; }
+    td { font-size: 0.9rem; }
   </style>
 </head>
 <body>
 
 <div class="module-container">
 
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-     <h5 style="margin:0; font-weight:800; color:#37474f;">Job Order (Production)</h5>
-     <button class="btn btn-large cyan darken-2" onclick="openCreate()">
-        <i class="material-icons left">add_circle</i> Open Job
-     </button>
+  <div style="margin-bottom:20px;">
+     <h5 style="font-weight:800; color:#37474f;">Job Order Management (Rev.02)</h5>
   </div>
 
-  <div id="listView" class="section-card">
-     <table class="highlight centered">
-       <thead>
-         <tr>
-           <th>Job No</th><th>Date</th><th>Product</th><th>Qty</th><th>Due Date</th><th>Lot No</th><th>Status</th><th>Action</th>
-         </tr>
-       </thead>
-       <tbody id="job-tbody"></tbody>
-     </table>
-  </div>
-
-  <div id="formView">
-    <div class="section-card" style="border-top: 4px solid #0097a7;">
-       <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-          <h6 style="font-weight:700; margin:0;">Create Production Order</h6>
-          <button class="btn-flat red-text" onclick="closeForm()">Cancel</button>
-       </div>
-       
-       <div class="row">
-          <div class="col s12 m4">
-             <label>Item Code (FG/WIP)</label>
-             <div style="display:flex;">
-                <input id="j-item-code" type="text" placeholder="Enter Code" onchange="checkBOM()">
-                <button class="btn-flat" onclick="checkBOM()"><i class="material-icons">search</i></button>
-             </div>
-             <span id="bom-helper" class="helper-text"></span>
-             <input type="hidden" id="j-bom-id"> </div>
-          
-          <div class="col s12 m5">
-             <label>Product Name</label>
-             <input id="j-item-name" type="text" readonly style="background:#f5f5f5;">
-          </div>
-          
-          <div class="col s12 m3">
-             <label>Lot No.</label>
-             <input id="j-lot" type="text" placeholder="e.g. L-260201">
-          </div>
-       </div>
-
-       <div class="row">
-          <div class="col s12 m4">
-             <label>Plan Qty</label>
-             <input id="j-qty" type="number" style="font-weight:bold; font-size:1.2rem; color:#006064;">
-          </div>
-          <div class="col s12 m2">
-             <label>UOM</label>
-             <input id="j-uom" type="text" readonly style="background:#f5f5f5;">
-          </div>
-          <div class="col s12 m3">
-             <label>Due Date</label>
-             <input id="j-due" type="date">
-          </div>
-          <div class="col s12 m3">
-             <label>Note</label>
-             <input id="j-note" type="text">
-          </div>
-       </div>
-
-       <div class="divider" style="margin:20px 0;"></div>
-       
-       <button id="btnSave" class="btn-large cyan darken-2 w-100" disabled>
-           Verify Item First
-       </button>
+  <div class="card">
+    <div class="card-tabs">
+      <ul class="tabs tabs-fixed-width">
+        <li class="tab"><a class="active" href="#tab-create" onclick="switchTab('create')">1. Create & List</a></li>
+        <li class="tab"><a href="#tab-data" onclick="switchTab('data')">2. Job Order Data</a></li>
+        <li class="tab"><a href="#tab-report" onclick="switchTab('report')">3. Report BOM</a></li>
+      </ul>
     </div>
+  </div>
+
+  <div id="tab-create" class="view-section active-view">
+      <div style="text-align:right; margin-bottom:10px;">
+          <button class="btn blue darken-2" onclick="openCreateForm()"><i class="material-icons left">add</i> New Job</button>
+      </div>
+
+      <div id="createForm" class="section-card" style="display:none; border-top: 4px solid #1565c0;">
+          <h6 style="font-weight:bold;">Open New Job Order</h6>
+          <div class="row">
+              <div class="col s12 m3">
+                  <label>Item Code (FG/WIP)</label>
+                  <input id="j-code" type="text" placeholder="Scan/Type Code"> 
+              </div>
+              <div class="col s12 m2">
+                  <label>Plan Qty</label>
+                  <input id="j-qty" type="number">
+              </div>
+              <div class="col s12 m3">
+                  <label>Due Date</label>
+                  <input id="j-due" type="date">
+              </div>
+              <div class="col s12 m2">
+                  <label>Lot No</label>
+                  <input id="j-lot" type="text">
+              </div>
+               <div class="col s12 m2">
+                  <label>Remark</label>
+                  <input id="j-remark" type="text">
+              </div>
+          </div>
+          <div class="row">
+             <div class="col s12">
+                 <button class="btn green w-100" onclick="saveJob()">Confirm & Save</button>
+                 <button class="btn-flat red-text" onclick="document.getElementById('createForm').style.display='none'">Cancel</button>
+             </div>
+          </div>
+      </div>
+
+      <div class="section-card">
+          <h6>Recent Jobs</h6>
+          <table class="highlight centered">
+              <thead><tr><th>Job No</th><th>Date</th><th>Item</th><th>Name</th><th>Plan Qty</th><th>UOM</th><th>Status</th><th>User</th></tr></thead>
+              <tbody id="recent-tbody"></tbody>
+          </table>
+      </div>
+  </div>
+
+  <div id="tab-data" class="view-section">
+      <div class="section-card" style="background:#e0f7fa;">
+          <div class="row" style="margin-bottom:0; align-items: flex-end; display: flex;">
+              <div class="col s12 m3">
+                  <label>Date Criteria</label>
+                  <select id="s-criteria" class="browser-default" style="background:white;">
+                      <option value="JobDate">Job Date (วันที่เปิด)</option>
+                      <option value="EndDate">End Date (วันที่จบ)</option>
+                  </select>
+              </div>
+              <div class="col s12 m3">
+                  <label>Start Date</label>
+                  <input id="s-start" type="date" style="background:white; height:2.5rem; border:1px solid #ccc; padding:0 5px;">
+              </div>
+              <div class="col s12 m3">
+                  <label>End Date</label>
+                  <input id="s-end" type="date" style="background:white; height:2.5rem; border:1px solid #ccc; padding:0 5px;">
+              </div>
+              <div class="col s12 m3">
+                  <button class="btn cyan darken-3 w-100" onclick="searchData()">
+                      <i class="material-icons left">search</i> Search
+                  </button>
+              </div>
+          </div>
+      </div>
+
+      <div class="section-card">
+          <table class="striped centered">
+              <thead>
+                  <tr>
+                      <th>Job No</th><th>Date</th><th>Item</th><th>Name</th>
+                      <th>Plan Qty</th><th>Actual</th><th>Status</th><th>End Date</th><th>User</th>
+                  </tr>
+              </thead>
+              <tbody id="search-tbody"></tbody>
+          </table>
+      </div>
+  </div>
+
+  <div id="tab-report" class="view-section">
+      <div class="section-card" style="max-width:600px; margin:0 auto; text-align:center; padding:40px;">
+          <i class="material-icons large grey-text">description</i>
+          <h5>Generate BOM & Workstation Report</h5>
+          <p class="grey-text">Export full details of a specific Job Order as CSV</p>
+          
+          <div class="input-field" style="margin-top:30px;">
+              <input id="r-job-no" type="text" placeholder="Enter Job No (e.g. JO-2602-001)" style="text-align:center; font-size:1.5rem; font-weight:bold;">
+          </div>
+          
+          <button class="btn-large deep-orange darken-1 waves-effect" onclick="downloadReport()">
+              <i class="material-icons left">cloud_download</i> Download Report
+          </button>
+      </div>
   </div>
 
 </div>
@@ -102,146 +146,133 @@
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  // Global Data
-  let masterItems = []; 
-
   document.addEventListener('DOMContentLoaded', () => { 
       M.AutoInit(); 
-      loadJobs();
-      // Pre-load items for Name lookup
-      google.script.run.withSuccessHandler(data => masterItems = data.items).api_getMasterDataForBOM(); 
+      loadRecentJobs();
   });
 
-  function loadJobs() {
-      const tbody = document.getElementById('job-tbody');
-      tbody.innerHTML = '<tr><td colspan="8">Loading...</td></tr>';
-      
-      google.script.run.withSuccessHandler(list => {
-          tbody.innerHTML = '';
-          if(list.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No Active Jobs</td></tr>'; return; }
-          
-          list.forEach(j => {
-              // Status Badge Logic
-              let cls = 'st-planned';
-              if(j.status==='WIP') cls = 'st-wip';
-              if(j.status==='Completed') cls = 'st-completed';
-              
-              // Format Date
-              let d = new Date(j.dueDate);
-              let dateStr = d.toLocaleDateString('en-GB');
-
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td><b>${j.jobNo}</b></td>
-                <td>${new Date(j.jobDate).toLocaleDateString('en-GB')}</td>
-                <td class="left-align">${j.itemCode}<br><small class="grey-text">${j.itemName}</small></td>
-                <td>${j.planQty} ${j.uom}</td>
-                <td>${dateStr}</td>
-                <td>${j.lotNo}</td>
-                <td><span class="badge-status ${cls}">${j.status}</span></td>
-                <td>
-                   ${j.status === 'Planned' ? `<button class="btn-small orange" onclick="setStatus('${j.jobNo}', 'WIP')">Start</button>` : ''}
-                   ${j.status === 'WIP' ? `<button class="btn-small green" onclick="setStatus('${j.jobNo}', 'Completed')">Finish</button>` : ''}
-                </td>
-              `;
-              tbody.appendChild(tr);
-          });
-          toggleView('list');
-      }).api_getAllJobs();
+  function switchTab(tabName) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+      if(tabName === 'create') document.getElementById('tab-create').classList.add('active-view');
+      if(tabName === 'data') document.getElementById('tab-data').classList.add('active-view');
+      if(tabName === 'report') document.getElementById('tab-report').classList.add('active-view');
   }
 
-  // --- Create Logic ---
-  function checkBOM() {
-      const code = document.getElementById('j-item-code').value.trim().toUpperCase();
-      const helper = document.getElementById('bom-helper');
-      const btn = document.getElementById('btnSave');
-      
-      if(!code) return;
-      
-      // 1. Lookup Name & UOM locally
-      const item = masterItems.find(i => i.code === code);
-      if(item) {
-          document.getElementById('j-item-name').value = item.name;
-          document.getElementById('j-uom').value = item.uom;
-      } else {
-          document.getElementById('j-item-name').value = 'Unknown Item';
-      }
-
-      // 2. Lookup BOM from Server
-      helper.innerText = 'Checking BOM...';
-      helper.className = 'helper-text';
-      
-      google.script.run.withSuccessHandler(res => {
-          if(res.success) {
-              document.getElementById('j-bom-id').value = res.bomId;
-              helper.innerText = '✅ BOM Found: ' + res.bomId;
-              helper.className = 'helper-text green-text';
-              btn.disabled = false;
-              btn.innerText = 'Confirm & Create Job';
-          } else {
-              document.getElementById('j-bom-id').value = '';
-              helper.innerText = '❌ No Active BOM Found. Cannot open Job.';
-              helper.className = 'helper-text red-text';
-              btn.disabled = true;
-              btn.innerText = 'BOM Missing';
-          }
-      }).api_findActiveBOM(code);
+  // --- TAB 1: Create & List ---
+  function openCreateForm() {
+      document.getElementById('createForm').style.display = 'block';
   }
 
-  document.getElementById('btnSave').addEventListener('click', function() {
+  function saveJob() {
       const data = {
-          itemCode: document.getElementById('j-item-code').value.trim(),
-          itemName: document.getElementById('j-item-name').value,
+          itemCode: document.getElementById('j-code').value.trim(),
           planQty: document.getElementById('j-qty').value,
-          uom: document.getElementById('j-uom').value,
           dueDate: document.getElementById('j-due').value,
-          bomId: document.getElementById('j-bom-id').value,
           lotNo: document.getElementById('j-lot').value,
-          note: document.getElementById('j-note').value
+          remark: document.getElementById('j-remark').value,
+          // Note: Name/UOM are VLOOKUP at backend
+          // Check BOM ID logic can be added here or backend, 
+          // but for simplicity we let backend handle BOM search based on ItemCode
+          bomId: '' // Backend will find Active BOM
       };
 
-      if(!data.planQty || !data.dueDate) { Swal.fire('Error', 'Qty & Date Required', 'error'); return; }
+      if(!data.itemCode || !data.planQty) { Swal.fire('Error','Missing Data','error'); return; }
 
-      const btn = this; btn.disabled = true; btn.innerText = 'Creating...';
-      
+      // Check BOM first (Optional but good UX)
+      google.script.run.withSuccessHandler(res => {
+          if(!res.success) {
+               Swal.fire('Error', 'No Active BOM found for this Item', 'error');
+          } else {
+               // Proceed to Save
+               data.bomId = res.bomId;
+               submitJob(data);
+          }
+      }).api_findActiveBOM(data.itemCode);
+  }
+
+  function submitJob(data) {
+      Swal.fire({title:'Saving...', didOpen:()=>Swal.showLoading()});
       google.script.run.withSuccessHandler(res => {
           if(res.success) {
               Swal.fire('Created', res.message, 'success');
-              closeForm();
-              loadJobs();
+              document.getElementById('createForm').style.display='none';
+              loadRecentJobs();
           } else {
               Swal.fire('Error', res.message, 'error');
-              btn.disabled = false;
           }
       }).api_saveJobOrder(data);
-  });
-
-  function setStatus(jobNo, status) {
-      Swal.fire({
-         title: `Update to ${status}?`,
-         text: `Job: ${jobNo}`,
-         showCancelButton: true
-      }).then(r => {
-         if(r.isConfirmed) {
-             google.script.run.withSuccessHandler(res => {
-                 if(res.success) { M.toast({html: 'Updated'}); loadJobs(); }
-             }).api_updateJobStatus(jobNo, status);
-         }
-      });
   }
 
-  // --- UI Helpers ---
-  function openCreate() {
-      document.querySelectorAll('input').forEach(i => i.value = '');
-      document.getElementById('bom-helper').innerText = '';
-      document.getElementById('btnSave').disabled = true;
-      document.getElementById('btnSave').innerText = 'Verify Item First';
-      toggleView('form');
+  function loadRecentJobs() {
+      // Re-use api_getAllJobs from Rev.01 but modified to show User field
+      google.script.run.withSuccessHandler(list => {
+         const tbody = document.getElementById('recent-tbody');
+         tbody.innerHTML = '';
+         // Show top 10
+         list.slice(0, 10).forEach(j => {
+             const tr = document.createElement('tr');
+             tr.innerHTML = `<td>${j.jobNo}</td><td>${new Date(j.jobDate).toLocaleDateString()}</td><td>${j.itemCode}</td><td>${j.itemName}</td><td>${j.planQty}</td><td>${j.uom}</td><td>${j.status}</td><td>User*</td>`; 
+             // *Note: api_getAllJobs old version might not return user yet, update service if needed or just show basic info
+             tbody.appendChild(tr);
+         });
+      }).api_getAllJobs(); 
   }
-  function closeForm() { toggleView('list'); }
-  function toggleView(view) {
-      document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
-      document.getElementById('formView').style.display = view === 'form' ? 'block' : 'none';
+
+  // --- TAB 2: Search Data ---
+  function searchData() {
+      const criteria = document.getElementById('s-criteria').value;
+      const start = document.getElementById('s-start').value;
+      const end = document.getElementById('s-end').value;
+
+      if(!start || !end) { M.toast({html:'Select Start & End Date'}); return; }
+
+      const tbody = document.getElementById('search-tbody');
+      tbody.innerHTML = '<tr><td colspan="9">Searching...</td></tr>';
+
+      google.script.run.withSuccessHandler(list => {
+          tbody.innerHTML = '';
+          if(list.length === 0) { tbody.innerHTML = '<tr><td colspan="9">No Records Found</td></tr>'; return; }
+
+          list.forEach(j => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                  <td><b>${j.jobNo}</b></td>
+                  <td>${j.jobDate}</td>
+                  <td>${j.itemCode}</td>
+                  <td class="left-align">${j.itemName}</td>
+                  <td class="blue-text">${j.planQty} ${j.uom}</td>
+                  <td class="green-text">${j.actualQty}</td>
+                  <td>${j.status}</td>
+                  <td>${j.endDate}</td>
+                  <td><small class="grey-text">${j.user}</small></td>
+              `;
+              tbody.appendChild(tr);
+          });
+      }).api_searchJobOrders(criteria, start, end);
+  }
+
+  // --- TAB 3: Report ---
+  function downloadReport() {
+      const jobNo = document.getElementById('r-job-no').value.trim();
+      if(!jobNo) { M.toast({html:'Enter Job No'}); return; }
+
+      Swal.fire({title:'Generating...', didOpen:()=>Swal.showLoading()});
+
+      google.script.run.withSuccessHandler(res => {
+          Swal.close();
+          if(res.success) {
+              const blob = new Blob([res.csvData], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.setAttribute("href", url);
+              link.setAttribute("download", res.fileName);
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+          } else {
+              Swal.fire('Error', res.message, 'error');
+          }
+      }).api_getJobBOMReport(jobNo);
   }
 </script>
 
