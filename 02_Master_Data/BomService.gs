@@ -147,3 +147,84 @@ function api_saveBOM(data) {
     lock.releaseLock();
   }
 }
+/**
+ * BOMService.gs (Rev.03 - Add Search & Export)
+ */
+
+// ... (Code เดิม: api_getMasterDataForBOM, api_getBOMList, api_saveBOM เก็บไว้เหมือนเดิม) ...
+
+// [NEW] 1. ค้นหา BOM ID ด้วย Item Code (สำหรับปุ่ม Edit)
+function api_findBOMByItemCode(itemCode) {
+  const ss = SpreadsheetApp.openById(ERP_CONFIG.INVENTORY_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_BOM_HEAD);
+  if(!sheet) return null;
+  
+  const data = sheet.getDataRange().getValues(); // Row 1 is header
+  
+  // ค้นหาแถวที่ ItemCode (Col B -> Index 1) ตรงกัน และเอาตัวล่าสุดหรือตัวแรกที่เจอ
+  // แนะนำให้หาตัวที่เป็น Active
+  const foundRow = data.find(r => String(r[1]).toUpperCase() === itemCode.toUpperCase().trim());
+  
+  if (foundRow) {
+    // ส่ง BOM_ID กลับไปเพื่อเรียก api_getBOMDetail ต่อ
+    return { success: true, bomId: foundRow[0] };
+  } else {
+    return { success: false, message: 'BOM not found for Item Code: ' + itemCode };
+  }
+}
+
+// [NEW] 2. สร้างข้อมูล CSV สำหรับ Report (สำหรับปุ่ม Export)
+function api_getBOMReportCSV(itemCode) {
+  const findResult = api_findBOMByItemCode(itemCode);
+  if (!findResult.success) return { success: false, message: findResult.message };
+
+  // ดึงข้อมูล Detail ทั้งหมดมา
+  const bomData = api_getBOMDetail(findResult.bomId);
+  if (!bomData) return { success: false, message: 'Data extraction failed' };
+
+  // --- สร้าง Content CSV ---
+  let csvContent = "";
+  
+  // 1. Header Information
+  csvContent += `BOM Report for Item: ,${bomData.header.itemCode} - ${bomData.header.itemName}\n`;
+  csvContent += `BOM ID: ,${bomData.header.bomId}\n`;
+  csvContent += `Batch Size: ,${bomData.header.batchSize} ${bomData.header.batchUom}\n`;
+  csvContent += `Type: ,${bomData.header.type}\n`;
+  csvContent += `Status: ,${bomData.header.status}\n`;
+  csvContent += `\n`; // เว้นบรรทัด
+
+  // 2. Table Header
+  csvContent += `Seq,Work Description,Type,Item/Station Code,Name,Qty/Time,UOM,Parameters\n`;
+
+  // 3. Table Rows
+  bomData.details.forEach(d => {
+    // Clean data (ป้องกัน Comma ทำลาย format csv)
+    const cleanDesc = (d.workDesc || '').replace(/,/g, ' ');
+    const cleanName = (d.itemName || d.stationName || '').replace(/,/g, ' ');
+    const cleanParams = (d.params || '').replace(/,/g, ' ');
+    
+    // Determine Type (Material or Machine) based on data presence
+    let type = d.itemCode ? 'Material' : 'Machine';
+    let code = d.itemCode || d.stationCode || '';
+
+    // CSV Row string
+    const row = [
+      d.seq,
+      cleanDesc,
+      type,
+      code,
+      cleanName,
+      d.qty,
+      d.uom,
+      cleanParams
+    ].join(",");
+
+    csvContent += row + "\n";
+  });
+
+  return { 
+    success: true, 
+    csvData: csvContent, 
+    fileName: `BOM_${bomData.header.itemCode}.csv` 
+  };
+}
