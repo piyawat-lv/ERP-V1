@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    body { background-color: #f4f6f8; font-family: 'Segoe UI', Roboto, sans-serif; }
+    .module-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .section-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    
+    .tabs .tab a { color: #2e7d32; font-weight:bold; }
+    .tabs .tab a:hover, .tabs .tab a.active { color: #1b5e20; background-color:rgba(46, 125, 50, 0.1); }
+    .tabs .indicator { background-color: #2e7d32; }
+    
+    input { font-weight: 500; }
+    .readonly-field { background-color: #f1f8e9; color: #33691e; }
+  </style>
+</head>
+<body>
+
+<div class="module-container">
+
+  <h5 style="font-weight:800; color:#37474f; margin-bottom:20px;">Inventory Inbound (รับเข้า)</h5>
+
+  <div class="row">
+    <div class="col s12">
+      <ul class="tabs z-depth-1" style="border-radius:4px;">
+        <li class="tab col s6"><a class="active" href="#tab-purchase" onclick="setSubType('Purchase')">1. Purchase Receive (RM)</a></li>
+        <li class="tab col s6"><a href="#tab-production" onclick="setSubType('Production')">2. Job Order Receive (FG)</a></li>
+      </ul>
+    </div>
+    
+    <div id="tab-purchase" class="col s12 section-card" style="margin-top:10px;">
+        <div class="row">
+            <div class="col s12 m3">
+                <label>Date</label>
+                <input id="p-date" type="date">
+            </div>
+            <div class="col s12 m3">
+                <label>Ref Doc (PO No)</label>
+                <input id="p-ref" type="text" placeholder="PO-xxxx">
+            </div>
+            <div class="col s12 m3">
+                <label>Location (Warehouse)</label>
+                <input id="p-loc" type="text" placeholder="WH-RM-01">
+            </div>
+            <div class="col s12 m3">
+                <label>Supplier / Note</label>
+                <input id="p-note" type="text">
+            </div>
+        </div>
+        
+        <div class="divider"></div><br>
+
+        <div class="row">
+            <div class="col s12 m4">
+                <label>Item Code (RM/PK)</label>
+                <div style="display:flex;">
+                   <input id="p-item-code" type="text" onchange="lookupItem(this.value, 'p')" placeholder="Scan/Type">
+                   <button class="btn-flat" onclick="lookupItem(document.getElementById('p-item-code').value, 'p')"><i class="material-icons">search</i></button>
+                </div>
+            </div>
+            <div class="col s12 m4">
+                <label>Item Name</label>
+                <input id="p-item-name" type="text" readonly class="readonly-field">
+            </div>
+            <div class="col s12 m4">
+                <label>Lot No</label>
+                <input id="p-lot" type="text">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col s12 m3">
+                <label>Receive Qty</label>
+                <input id="p-qty" type="number" style="font-size:1.2rem; font-weight:bold; color:#1b5e20;">
+            </div>
+            <div class="col s12 m2">
+                <label>UOM</label>
+                <input id="p-uom" type="text" readonly class="readonly-field">
+            </div>
+            <div class="col s12 m3">
+                <label>Exp Date</label>
+                <input id="p-exp" type="date">
+            </div>
+             <div class="col s12 m4" style="margin-top:20px;">
+                <button class="btn green darken-2 w-100" onclick="saveTransaction('p')">
+                    <i class="material-icons left">save_alt</i> Receive RM
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-production" class="col s12 section-card" style="margin-top:10px;">
+        <div class="row" style="background:#e8f5e9; padding:15px; border-radius:8px;">
+            <div class="col s12 m4">
+                <label style="color:#1b5e20; font-weight:bold;">Scan Job Order No.</label>
+                <div style="display:flex;">
+                   <input id="j-ref" type="text" onchange="lookupJob(this.value)" placeholder="JO-xxxx">
+                   <button class="btn-flat" onclick="lookupJob(document.getElementById('j-ref').value)"><i class="material-icons">search</i></button>
+                </div>
+            </div>
+             <div class="col s12 m4">
+                <label>Receive Date</label>
+                <input id="j-date" type="date">
+            </div>
+             <div class="col s12 m4">
+                <label>Target Location</label>
+                <input id="j-loc" type="text" value="WH-FG-01">
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:20px;">
+             <div class="col s12 m4">
+                <label>FG Item Code</label>
+                <input id="j-item-code" type="text" readonly class="readonly-field">
+            </div>
+            <div class="col s12 m5">
+                <label>Item Name</label>
+                <input id="j-item-name" type="text" readonly class="readonly-field">
+            </div>
+            <div class="col s12 m3">
+                <label>Job Lot No</label>
+                <input id="j-lot" type="text" readonly class="readonly-field">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col s12 m4">
+                <label>Receive Qty (FG)</label>
+                <input id="j-qty" type="number" style="font-size:1.2rem; font-weight:bold; color:#1b5e20;">
+                <span class="helper-text" id="j-plan-qty"></span>
+            </div>
+            <div class="col s12 m2">
+                <label>UOM</label>
+                <input id="j-uom" type="text" readonly class="readonly-field">
+            </div>
+            <div class="col s12 m6" style="margin-top:20px;">
+                <button class="btn green darken-2 w-100" onclick="saveTransaction('j')">
+                    <i class="material-icons left">save_alt</i> Receive From Job
+                </button>
+            </div>
+        </div>
+    </div>
+
+  </div>
+
+  <div class="section-card">
+      <h6>Recent Inbound Transactions</h6>
+      <table class="striped centered">
+          <thead><tr><th>ID</th><th>Date</th><th>Type</th><th>Item</th><th>Qty</th><th>Location</th></tr></thead>
+          <tbody id="recent-tbody"></tbody>
+      </table>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  let currentSubType = 'Purchase';
+
+  document.addEventListener('DOMContentLoaded', () => {
+      M.AutoInit();
+      // Set Default Date
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('p-date').value = today;
+      document.getElementById('j-date').value = today;
+      loadRecent();
+  });
+
+  function setSubType(type) {
+      currentSubType = type;
+  }
+
+  // --- Lookup Item (Purchase) ---
+  function lookupItem(code, prefix) {
+      if(!code) return;
+      google.script.run.withSuccessHandler(res => {
+          if(res.success) {
+              document.getElementById(prefix + '-item-name').value = res.name;
+              document.getElementById(prefix + '-uom').value = res.uom;
+              M.toast({html: 'Item Found'});
+          } else {
+              document.getElementById(prefix + '-item-name').value = 'Not Found';
+              M.toast({html: 'Item Not Found', classes:'red'});
+          }
+      }).api_getItemDetails(code);
+  }
+
+  // --- Lookup Job (Production) ---
+  function lookupJob(jobNo) {
+      if(!jobNo) return;
+      Swal.fire({title:'Checking Job...', didOpen:()=>Swal.showLoading()});
+      
+      google.script.run.withSuccessHandler(res => {
+          Swal.close();
+          if(res.success) {
+              document.getElementById('j-item-code').value = res.itemCode;
+              document.getElementById('j-item-name').value = res.itemName;
+              document.getElementById('j-uom').value = res.uom;
+              document.getElementById('j-lot').value = res.lotNo;
+              document.getElementById('j-qty').value = res.planQty; // Suggest Plan Qty
+              document.getElementById('j-plan-qty').innerText = `Plan: ${res.planQty}`;
+              M.toast({html: 'Job Data Loaded', classes:'green'});
+          } else {
+              Swal.fire('Error', res.message, 'error');
+              document.getElementById('j-item-code').value = '';
+          }
+      }).api_getJobDetails(jobNo);
+  }
+
+  // --- Save Transaction ---
+  function saveTransaction(prefix) {
+      const isPurchase = prefix === 'p';
+      
+      const data = {
+          date: document.getElementById(prefix + '-date').value,
+          subType: isPurchase ? 'Purchase' : 'Production',
+          refDoc: document.getElementById(prefix + '-ref').value,
+          itemCode: document.getElementById(prefix + '-item-code').value,
+          itemName: document.getElementById(prefix + '-item-name').value,
+          qty: document.getElementById(prefix + '-qty').value,
+          uom: document.getElementById(prefix + '-uom').value,
+          lotNo: document.getElementById(prefix + '-lot').value,
+          location: document.getElementById(prefix + '-loc').value,
+          expDate: isPurchase ? document.getElementById('p-exp').value : '',
+          note: isPurchase ? document.getElementById('p-note').value : ''
+      };
+
+      if(!data.itemCode || !data.qty || !data.refDoc) {
+          Swal.fire('Warning', 'Please fill Ref Doc, Item and Qty', 'warning');
+          return;
+      }
+
+      Swal.fire({title:'Receiving...', didOpen:()=>Swal.showLoading()});
+
+      google.script.run.withSuccessHandler(res => {
+          if(res.success) {
+              Swal.fire('Success', res.message, 'success');
+              // Clear fields
+              document.getElementById(prefix + '-qty').value = '';
+              document.getElementById(prefix + '-item-code').value = '';
+              document.getElementById(prefix + '-item-name').value = '';
+              if(!isPurchase) document.getElementById(prefix + '-ref').value = ''; 
+              loadRecent();
+          } else {
+              Swal.fire('Error', res.message, 'error');
+          }
+      }).api_saveInbound(data);
+  }
+
+  function loadRecent() {
+      google.script.run.withSuccessHandler(list => {
+          const tbody = document.getElementById('recent-tbody');
+          tbody.innerHTML = '';
+          list.forEach(r => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `<td>${r.id}</td><td>${r.date}</td><td>${r.type}</td><td class="left-align">${r.item}</td><td>${r.qty}</td><td>${r.loc}</td>`;
+              tbody.appendChild(tr);
+          });
+      }).api_getRecentTrans();
+  }
+
+</script>
+
+</body>
+</html>
