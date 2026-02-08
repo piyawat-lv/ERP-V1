@@ -2,112 +2,226 @@
 <html>
 <head>
   <base target="_top">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  
   <style>
-     body { background-color: #f4f6f8; font-family: 'Segoe UI', Roboto, sans-serif; }
-     .module-container { max-width: 1200px; margin: 0 auto; padding: 20px; padding-bottom:100px; }
-     
-     /* Search Box Style */
-     .search-box-card {
+     :root {
+        --primary-color: #2c3e50; /* Dark Blue-Grey */
+        --accent-color: #3498db;  /* Bright Blue */
+        --bg-color: #f8f9fa;
+     }
+
+     body { 
+        background-color: var(--bg-color); 
+        font-family: 'Roboto', sans-serif; 
+        color: #333;
+     }
+
+     .module-container { 
+        max-width: 1200px; 
+        margin: 0 auto; 
         padding: 20px; 
-        background: white; 
-        border-radius: 8px; 
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+     }
+
+     /* Header Styles */
+     .header-section {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 10px;
+        margin-bottom: 30px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+     }
+
+     .page-title h5 {
+        margin: 0;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 1px;
      }
      
-     /* File List Style */
-     .file-item { display: flex; justify-content: space-between; align-items: center; background: #eee; padding: 8px 12px; margin-bottom: 5px; border-radius: 4px; }
-     .file-item a { text-decoration: none; color: #0277bd; font-weight: 500; }
-     .delete-file { color: red; cursor: pointer; }
+     .page-title span {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+     }
+
+     .action-buttons .btn {
+        margin-left: 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        box-shadow: none;
+        text-transform: none; /* อ่านง่ายขึ้น */
+     }
      
-     #listView, #formView { display: none; }
+     .btn-link { background-color: #fff; color: #555; border: 1px solid #ddd; }
+     .btn-link:hover { background-color: #f5f5f5; }
+     .btn-refresh { background-color: #f39c12; }
+     .btn-new { background-color: #27ae60; }
+
+     /* Dashboard Stats */
+     .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+     }
+
+     .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border-left: 5px solid var(--accent-color);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+     }
+     
+     .stat-title { font-size: 0.8rem; font-weight: 700; color: #95a5a6; text-transform: uppercase; }
+     .stat-value { font-size: 2rem; font-weight: 700; color: var(--primary-color); margin: 10px 0; }
+     
+     /* Search Bar */
+     .search-wrapper {
+        background: white;
+        padding: 10px 20px;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+        border: 1px solid #eee;
+     }
+     
+     .search-wrapper input {
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding-left: 10px;
+     }
+
+     /* Table */
+     .table-card {
+        background: white;
+        border-radius: 8px;
+        padding: 0;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+     }
+     
+     table.striped thead { background-color: #ecf0f1; }
+     table.striped th { color: #555; font-weight: 600; font-size: 0.9rem; padding: 15px 10px; }
+     table.striped td { padding: 12px 10px; font-size: 0.95rem; }
+     
+     /* Status Badges */
+     .badge-status { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+     .st-active { color: #27ae60; background: #eafaf1; }
+     .st-inactive { color: #c0392b; background: #fdedec; }
+
+     /* Form View */
+     #formView { display: none; }
+     .form-header {
+        background: #ecf0f1;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #ddd;
+     }
+     
+     .file-item { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 8px 12px; margin-bottom: 5px; border-radius: 4px; border:1px solid #eee;}
+     .file-item a { text-decoration: none; color: #3498db; font-weight: 500; }
   </style>
 </head>
 <body>
 
 <div class="module-container">
 
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-     <div>
-        <h4 style="margin:0; font-weight:800; color:#37474f;">Item Master (Rev.08)</h4>
-        <span class="grey-text">Inventory Data Management</span>
+  <div class="header-section">
+     <div class="page-title">
+        <h5>Item Master</h5>
+        <span>Manage Product & Inventory Data</span>
      </div>
-     <div style="display:flex; gap:10px;">
-       <button class="btn blue darken-3 waves-effect" onclick="openSpreadsheet()">
-         <i class="material-icons left">table_view</i> Link to Data
+     <div class="action-buttons">
+       <button class="btn btn-link waves-effect" onclick="openSpreadsheet()" title="Open Google Sheet">
+         <i class="material-icons left blue-text">table_view</i> Data
        </button>
-       
-       <button class="btn orange darken-2 waves-effect" onclick="refreshCost()">
+       <button class="btn btn-refresh waves-effect" onclick="refreshCost()">
          <i class="material-icons left">sync</i> Refresh Cost
        </button>
-       
-       <button class="btn green darken-1 waves-effect" onclick="openCreate()">
+       <button class="btn btn-new waves-effect" onclick="openCreate()">
          <i class="material-icons left">add</i> New Item
        </button>
      </div>
   </div>
 
-  <div class="center-align" style="margin-bottom: 20px;">
-     <button id="btnToggleList" class="btn-flat border" onclick="toggleListView()">Toggle List View</button>
+  <div id="mainView">
+      
+      <div class="stats-container">
+          <div class="stat-card" style="border-color: #3498db;">
+              <div class="stat-title">Total Items</div>
+              <div class="stat-value" id="d-total">-</div>
+          </div>
+          <div class="stat-card" style="border-color: #2ecc71;">
+              <div class="stat-title">Active Status</div>
+              <div id="d-status-list" style="margin-top:10px; font-size:0.9rem;">Loading...</div>
+          </div>
+          <div class="stat-card" style="border-color: #f1c40f;">
+              <div class="stat-title">Categories</div>
+              <div id="d-cat-list" style="margin-top:10px; font-size:0.9rem;">Loading...</div>
+          </div>
+      </div>
+
+      <div class="search-wrapper">
+          <i class="material-icons grey-text">search</i>
+          <input id="search-input" type="text" placeholder="Search by Keyword: Name, Code, Supplier, Status... (Press Enter)">
+          <button class="btn-flat blue-text" style="font-weight:bold;" onclick="filterTable()">Search</button>
+      </div>
+
+      <div class="table-card">
+          <div style="overflow-x:auto;">
+             <table class="striped centered">
+               <thead>
+                 <tr>
+                   <th>Code</th><th>Name</th><th>Allergen</th><th>Source</th><th>Supplier</th><th>Status</th><th>Files</th><th>Action</th>
+                 </tr>
+               </thead>
+               <tbody id="item-tbody"></tbody>
+             </table>
+          </div>
+          <div style="padding:10px 20px; text-align:right; font-size:0.8rem; color:#888;" id="result-count"></div>
+      </div>
   </div>
 
-  <div id="listView">
-     
-     <div class="search-box-card">
-        <div class="input-field" style="flex-grow:1; margin:0;">
-             <i class="material-icons prefix">search</i>
-             <input id="search-input" type="text" placeholder="Keyword: Name, Supplier, Source, Status, Allergen (e.g. 'RB*', 'Active', 'Produce')">
-        </div>
-        <button class="btn blue lighten-1 waves-effect" onclick="filterTable()">
-           Search
-        </button>
-     </div>
+  <div id="formView" class="card" style="border-radius:8px; overflow:hidden;">
+      <div class="form-header">
+          <h5 style="margin:0; font-weight:700; color:#2c3e50;">Item Details</h5>
+          <button class="btn-flat red-text" style="font-weight:bold;" onclick="closeForm()">
+             <i class="material-icons left">close</i> Cancel
+          </button>
+      </div>
 
-     <div class="card" style="padding:20px; margin-top:10px;">
-       <div style="overflow-x:auto;">
-         <table class="striped centered">
-           <thead>
-             <tr>
-               <th>Code</th><th>Name</th><th>Allergen</th><th>Source</th><th>Supplier</th><th>Status</th><th>Files</th><th>Action</th>
-             </tr>
-           </thead>
-           <tbody id="item-tbody"></tbody>
-         </table>
-       </div>
-       <div id="result-count" class="right-align grey-text" style="margin-top:10px; font-size:0.8rem;"></div>
-     </div>
-  </div>
-
-  <div id="formView" class="card" style="padding:0; overflow:hidden;">
-    <div style="padding: 20px; background: #eceff1; display:flex; justify-content:space-between;">
-        <h5 id="formHeader" style="margin:0;">Create New Item</h5>
-        <button class="btn-flat red-text" onclick="closeForm()">Cancel</button>
-    </div>
-
-    <div style="padding: 30px;">
+      <div style="padding: 30px;">
         <input type="hidden" id="edit-id">
         <input type="hidden" id="existing-files-json"> 
 
+        <h6 class="blue-text" style="font-weight:bold; margin-bottom:20px;">Basic Information</h6>
         <div class="row">
-            <div class="col s12 m4">
-                <label>Item Code</label>
-                <div style="display:flex;">
-                   <input id="i-code" type="text" style="text-transform:uppercase;">
-                   <button class="btn-small indigo" onclick="manualCheckCode()"><i class="material-icons">search</i></button>
-                </div>
+            <div class="col s12 m4 input-field">
+                <input id="i-code" type="text" style="text-transform:uppercase;">
+                <label for="i-code">Item Code</label>
+                <span class="helper-text" data-error="wrong" data-success="right">
+                    <a href="#" onclick="manualCheckCode()">Check Duplicate</a>
+                </span>
             </div>
-            <div class="col s12 m8">
-                <label>Item Name</label>
+            <div class="col s12 m8 input-field">
                 <input id="i-name" type="text">
+                <label for="i-name">Item Name</label>
             </div>
         </div>
 
-        <div class="row" style="background:#f9fbe7; padding:15px; border-radius:8px;">
-            <div class="col s12"><h6 class="blue-text">Properties</h6></div>
+        <div class="row" style="background:#f8f9fa; padding:15px; border-radius:8px;">
             <div class="col s12 m4">
                 <label>Category</label>
                 <select id="i-cat" class="browser-default">
@@ -119,7 +233,7 @@
                 </select>
             </div>
             <div class="col s12 m4">
-                <label>Allergen</label>
+                <label>Allergen Status</label>
                 <select id="i-allergen" class="browser-default">
                    <option value="Non-Allergen">Non-Allergen</option>
                    <option value="Allergen">Allergen</option>
@@ -134,45 +248,58 @@
             </div>
         </div>
 
-        <div class="row" style="margin-top:15px;">
+        <div class="row" style="margin-top:20px;">
             <div class="col s12 m6">
-                <label>Source</label>
+                <label>Source Type</label>
                 <select id="i-source" class="browser-default" onchange="toggleSupplierUI()">
-                    <option value="Purchase">Purchase</option>
-                    <option value="Produce">Produce</option>
-                    <option value="Customer">Customer</option> 
+                    <option value="Purchase">Purchase (ซื้อ)</option>
+                    <option value="Produce">Produce (ผลิต)</option>
+                    <option value="Customer">Customer (ลูกค้า)</option> 
                 </select>
             </div>
-            <div class="col s12 m6">
-                <label>Supplier Name</label>
+            <div class="col s12 m6 input-field">
                 <input id="i-supplier" type="text">
+                <label for="i-supplier">Supplier Name</label>
             </div>
         </div>
 
-        <div class="row" style="background:#e3f2fd; padding:15px; border-radius:8px; margin-top:15px;">
-             <div class="col s12 m4">
-                 <label>Temp (°C)</label>
+        <div class="row" style="background:#e3f2fd; padding:20px; border-radius:8px; margin-top:20px;">
+             <div class="col s12 m4 input-field">
                  <input id="i-temp" type="text">
+                 <label for="i-temp">Storage Temp (°C)</label>
              </div>
-             <div class="col s12 m4">
-                 <label>Humidity (%RH)</label>
+             <div class="col s12 m4 input-field">
                  <input id="i-rh" type="text">
+                 <label for="i-rh">Humidity (%RH)</label>
              </div>
              <div class="col s12 m4">
-                 <label>Files (PDF)</label>
-                 <input type="file" id="i-files" multiple accept="application/pdf">
+                 <label>Attach Spec/COA (PDF)</label>
+                 <input type="file" id="i-files" multiple accept="application/pdf" style="margin-top:5px;">
              </div>
-             <div class="col s12" id="existing-files-container" style="margin-top:10px;"></div>
+             <div class="col s12" id="existing-files-container" style="margin-top:15px;"></div>
         </div>
 
-        <div class="row" style="margin-top:15px;">
-           <div class="col s12 m4"><label>UOM</label><select id="i-uom" class="browser-default"><option value="PCS">PCS</option><option value="KGS">KGS</option><option value="ROL">ROL</option></select></div>
-           <div class="col s12 m4"><label>Cost</label><input id="i-cost" type="number" step="0.01"></div>
-           <div class="col s12 m4"><label>Safety Stock</label><input id="i-safety" type="number"></div>
+        <div class="row" style="margin-top:20px;">
+           <div class="col s12 m4">
+                <label>UOM</label>
+                <select id="i-uom" class="browser-default">
+                    <option value="PCS">PCS</option><option value="KGS">KGS</option><option value="ROL">ROL</option>
+                </select>
+           </div>
+           <div class="col s12 m4 input-field">
+               <input id="i-cost" type="number" step="0.01">
+               <label for="i-cost">Standard Cost</label>
+           </div>
+           <div class="col s12 m4 input-field">
+               <input id="i-safety" type="number">
+               <label for="i-safety">Safety Stock</label>
+           </div>
         </div>
 
-        <div class="divider" style="margin:20px 0;"></div>
-        <button id="btnSave" class="btn-large green w-100">Save Item</button>
+        <div class="divider" style="margin:30px 0;"></div>
+        <button id="btnSave" class="btn-large waves-effect waves-light green darken-1 w-100" style="width:100%; border-radius:50px;">
+            <i class="material-icons left">save</i> Save Item
+        </button>
     </div>
   </div>
 
@@ -187,30 +314,44 @@
 
   document.addEventListener('DOMContentLoaded', () => { 
       M.AutoInit(); 
-      loadTable();
+      M.updateTextFields(); // Fix label overlapping
+      loadDashboard();
       
-      // Allow Enter key to search
+      // Enter Key Search
       document.getElementById('search-input').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') filterTable();
       });
   });
 
-  // --- Load Data ---
-  function loadTable() {
+  // --- 1. Load Data ---
+  function loadDashboard() {
      const tbody = document.getElementById('item-tbody');
-     tbody.innerHTML = '<tr><td colspan="8">Loading data...</td></tr>';
+     tbody.innerHTML = '<tr><td colspan="8" class="center-align">Loading data...</td></tr>';
      
-     google.script.run.withSuccessHandler(items => {
-        allItems = items; 
-        renderTable(items);
-        document.getElementById('listView').style.display = 'block';
-     }).api_getAllItems();
+     google.script.run.withSuccessHandler(data => {
+        allItems = data.items || []; // Assume backend returns { items: [], stats: {} } or handle accordingly
+        // If backend returns array directly:
+        if(Array.isArray(data)) allItems = data;
+
+        renderTable(allItems);
+        
+        // Render Stats (Simple Count)
+        document.getElementById('d-total').innerText = allItems.length;
+        
+        // Calculate Stats
+        const activeCount = allItems.filter(i => i.status === 'Active').length;
+        document.getElementById('d-status-list').innerText = `Active: ${activeCount} / Inactive: ${allItems.length - activeCount}`;
+        
+        const cats = [...new Set(allItems.map(i => i.category))];
+        document.getElementById('d-cat-list').innerText = cats.join(', ');
+
+     }).api_getAllItems(); // Make sure this function returns array of items
   }
 
   function renderTable(items) {
      const tbody = document.getElementById('item-tbody');
      tbody.innerHTML = '';
-     document.getElementById('result-count').innerText = `Total: ${items.length} items`;
+     document.getElementById('result-count').innerText = `Total: ${items.length} records`;
 
      if(items.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No Data Found</td></tr>'; return; }
 
@@ -221,63 +362,49 @@
         const fileCount = item.files && item.files[0] !== "" ? item.files.length : 0;
         const fileBadge = fileCount > 0 ? `<span class="new badge blue" data-badge-caption="">${fileCount}</span>` : '-';
         
-        // Status Color
-        let statusStyle = item.status === 'Active' ? 'color:green; font-weight:bold;' : 'color:red;';
+        // Status Badge
+        let statusCls = item.status === 'Active' ? 'st-active' : 'st-inactive';
 
         tr.innerHTML = `
           <td><b>${item.code}</b></td>
           <td class="left-align">${item.name}</td>
-          <td>${item.allergen}</td>
+          <td>${item.allergen || '-'}</td>
           <td>${item.source}</td>
           <td>${item.supplier || '-'}</td>
-          <td style="${statusStyle}">${item.status}</td>
+          <td><span class="badge-status ${statusCls}">${item.status}</span></td>
           <td>${fileBadge}</td>
-          <td><button class="btn-small btn-flat" onclick="editItem(this)"><i class="material-icons">edit</i></button></td>
+          <td>
+             <button class="btn-small btn-flat waves-effect" onclick="editItem(this)">
+                <i class="material-icons blue-text">edit</i>
+             </button>
+          </td>
         `;
         tbody.appendChild(tr);
      });
   }
 
-  // --- Search Logic (Updated Rev.08) ---
+  // --- 2. Search Logic ---
   function filterTable() {
       const input = document.getElementById('search-input').value.trim().toUpperCase();
-      
       let filtered = [];
       
-      // Case 1: Wildcard Search (e.g., RB*) - ยังคงรองรับ
       if (input.endsWith('*') && input.length > 1) {
           const prefix = input.slice(0, -1);
           filtered = allItems.filter(item => item.code.toUpperCase().startsWith(prefix));
-      } 
-      // Case 2: Multi-field Keyword Search (Partial Match)
-      else {
+      } else {
           filtered = allItems.filter(item => {
-              // รวมข้อมูลทุก Field ที่ต้องการค้นหา
-              const searchableText = `
-                  ${item.code} 
-                  ${item.name} 
-                  ${item.source} 
-                  ${item.supplier || ''} 
-                  ${item.status} 
-                  ${item.allergen}
-              `.toUpperCase();
-              
-              // เช็คว่ามีคำค้นหาอยู่ใน Text รวมหรือไม่
-              return searchableText.includes(input);
+              const text = `${item.code} ${item.name} ${item.source} ${item.supplier || ''} ${item.status} ${item.allergen}`.toUpperCase();
+              return text.includes(input);
           });
       }
-      
       renderTable(filtered);
   }
 
-  // --- Actions ---
+  // --- 3. Actions ---
   function openSpreadsheet() {
       google.script.run.withSuccessHandler(res => {
-          if(res.success) {
-              window.open(res.url, '_blank');
-          } else {
-              M.toast({html: 'Error getting URL'});
-          }
+          if(res.success) window.open(res.url, '_blank');
+          else M.toast({html: 'Error: ' + res.message});
       }).api_getSheetURL();
   }
 
@@ -285,29 +412,38 @@
       Swal.fire({title:'Syncing Cost', text:'Calculating from Stock...', didOpen:()=>Swal.showLoading()});
       google.script.run.withSuccessHandler(res => {
          Swal.close();
-         Swal.fire(res.success?'Done':'Error', res.message, res.success?'success':'error');
-         if(res.success) loadTable(); // Reload data to show new costs
+         if(res.success) {
+            Swal.fire('Done', res.message, 'success');
+            loadDashboard(); // Reload
+         } else {
+            Swal.fire('Error', res.message, 'error');
+         }
       }).api_recalcAverageCost();
   }
 
-  // --- Edit & Save (Logic เดิม) ---
+  // --- 4. Form Logic ---
   function openCreate() {
       document.getElementById('edit-id').value = '';
       document.querySelectorAll('input').forEach(i => i.value = '');
       document.getElementById('existing-files-container').innerHTML = '';
       currentExistingFiles = [];
+      
+      // Toggle Views
+      document.getElementById('mainView').style.display = 'none';
       document.getElementById('formView').style.display = 'block';
-      document.getElementById('listView').style.display = 'none';
+      
+      M.updateTextFields();
+      window.scrollTo(0, 0);
   }
   
   function closeForm() {
       document.getElementById('formView').style.display = 'none';
-      document.getElementById('listView').style.display = 'block';
+      document.getElementById('mainView').style.display = 'block';
   }
 
   window.editItem = function(btn) {
       const item = JSON.parse(btn.closest('tr').dataset.json);
-      // Map data to fields... (ย่อ Code ส่วนนี้เพราะเหมือนเดิม)
+      
       document.getElementById('edit-id').value = item.id;
       document.getElementById('i-code').value = item.code;
       document.getElementById('i-name').value = item.name;
@@ -322,38 +458,42 @@
       document.getElementById('i-temp').value = item.storageTemp || '';
       document.getElementById('i-rh').value = item.storageRH || '';
       
-      // Files Logic
+      // Files
       currentExistingFiles = (item.files && item.files[0] !== "") ? item.files : [];
       renderExistingFiles();
 
+      document.getElementById('mainView').style.display = 'none';
       document.getElementById('formView').style.display = 'block';
-      document.getElementById('listView').style.display = 'none';
-      M.updateTextFields();
+      
       toggleSupplierUI();
+      M.updateTextFields(); // Important for Materialize input labels
+      window.scrollTo(0, 0);
   };
 
   function renderExistingFiles() {
       const container = document.getElementById('existing-files-container');
       container.innerHTML = '';
       if(currentExistingFiles.length === 0) return;
+      
       let html = '<label>Attached Files:</label>';
       currentExistingFiles.forEach((fString, index) => {
           const parts = fString.split('|');
           const fUrl = 'https://drive.google.com/uc?id=' + parts[0] + '&export=view';
           html += `
             <div class="file-item">
-               <a href="${fUrl}" target="_blank"><i class="material-icons tiny">picture_as_pdf</i> ${parts[1]}</a>
-               <span class="delete-file" onclick="removeFile(${index})"><i class="material-icons tiny">delete</i></span>
+               <a href="${fUrl}" target="_blank"><i class="material-icons tiny">picture_as_pdf</i> ${parts[1] || 'File'}</a>
+               <i class="material-icons tiny delete-file" onclick="removeFile(${index})">delete</i>
             </div>`;
       });
       container.innerHTML = html;
   }
+  
   function removeFile(index) {
       currentExistingFiles.splice(index, 1);
       renderExistingFiles();
   }
-  
-  // File to Base64 & Save
+
+  // --- Save Logic ---
   const toBase64 = file => new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -364,7 +504,6 @@
   document.getElementById('btnSave').addEventListener('click', async function() {
       const btn = this; btn.disabled = true; btn.innerText = 'Processing...';
       
-      // Upload Logic
       const fileInput = document.getElementById('i-files');
       const newFilesToUpload = [];
       if (fileInput.files.length > 0) {
@@ -380,7 +519,7 @@
 
       const itemData = {
           id: document.getElementById('edit-id').value,
-          code: document.getElementById('i-code').value,
+          code: document.getElementById('i-code').value.trim(),
           name: document.getElementById('i-name').value,
           category: document.getElementById('i-cat').value,
           status: document.getElementById('i-status').value,
@@ -397,22 +536,36 @@
       };
 
       google.script.run.withSuccessHandler(res => {
-          btn.disabled = false; btn.innerText = 'Save Item';
-          if(res.success) { Swal.fire('Saved', '', 'success'); closeForm(); loadTable(); }
+          btn.disabled = false; btn.innerHTML = '<i class="material-icons left">save</i> Save Item';
+          if(res.success) { 
+              Swal.fire('Saved', '', 'success'); 
+              closeForm(); 
+              loadDashboard(); 
+          }
           else { Swal.fire('Error', res.message, 'error'); }
       }).api_saveItem(itemData);
   });
 
-  function toggleListView() {
-      const el = document.getElementById('listView');
-      el.style.display = el.style.display === 'none' ? 'block' : 'none';
-  }
   function toggleSupplierUI() {
       const source = document.getElementById('i-source').value;
-      document.getElementById('i-supplier').disabled = (source === 'Produce');
+      const supInput = document.getElementById('i-supplier');
+      if(source === 'Produce') {
+          supInput.disabled = true;
+          supInput.value = 'In-House';
+      } else {
+          supInput.disabled = false;
+          if(supInput.value === 'In-House') supInput.value = '';
+      }
+      M.updateTextFields();
   }
-  function manualCheckCode() { /* ...Logic check code... */ }
-
+  
+  function manualCheckCode() {
+      const code = document.getElementById('i-code').value;
+      if(!code) return M.toast({html: 'Enter Code first'});
+      google.script.run.withSuccessHandler(res => {
+          M.toast({html: res.message, classes: res.status==='AVAILABLE'?'green':'red'});
+      }).api_checkItemCode(code);
+  }
 </script>
 
 </body>
