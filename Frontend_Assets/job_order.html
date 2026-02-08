@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    body { background-color: #f4f6f8; font-family: 'Segoe UI', Roboto, sans-serif; }
+    .module-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .section-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    
+    /* Badges */
+    .badge-status { padding: 5px 10px; border-radius: 4px; font-weight: bold; color: white; font-size: 0.8rem; }
+    .st-planned { background-color: #90a4ae; }
+    .st-wip { background-color: #ffa726; }
+    .st-completed { background-color: #66bb6a; }
+    .st-cancelled { background-color: #ef5350; }
+
+    #listView, #formView { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="module-container">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+     <h5 style="margin:0; font-weight:800; color:#37474f;">Job Order (Production)</h5>
+     <button class="btn btn-large cyan darken-2" onclick="openCreate()">
+        <i class="material-icons left">add_circle</i> Open Job
+     </button>
+  </div>
+
+  <div id="listView" class="section-card">
+     <table class="highlight centered">
+       <thead>
+         <tr>
+           <th>Job No</th><th>Date</th><th>Product</th><th>Qty</th><th>Due Date</th><th>Lot No</th><th>Status</th><th>Action</th>
+         </tr>
+       </thead>
+       <tbody id="job-tbody"></tbody>
+     </table>
+  </div>
+
+  <div id="formView">
+    <div class="section-card" style="border-top: 4px solid #0097a7;">
+       <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+          <h6 style="font-weight:700; margin:0;">Create Production Order</h6>
+          <button class="btn-flat red-text" onclick="closeForm()">Cancel</button>
+       </div>
+       
+       <div class="row">
+          <div class="col s12 m4">
+             <label>Item Code (FG/WIP)</label>
+             <div style="display:flex;">
+                <input id="j-item-code" type="text" placeholder="Enter Code" onchange="checkBOM()">
+                <button class="btn-flat" onclick="checkBOM()"><i class="material-icons">search</i></button>
+             </div>
+             <span id="bom-helper" class="helper-text"></span>
+             <input type="hidden" id="j-bom-id"> </div>
+          
+          <div class="col s12 m5">
+             <label>Product Name</label>
+             <input id="j-item-name" type="text" readonly style="background:#f5f5f5;">
+          </div>
+          
+          <div class="col s12 m3">
+             <label>Lot No.</label>
+             <input id="j-lot" type="text" placeholder="e.g. L-260201">
+          </div>
+       </div>
+
+       <div class="row">
+          <div class="col s12 m4">
+             <label>Plan Qty</label>
+             <input id="j-qty" type="number" style="font-weight:bold; font-size:1.2rem; color:#006064;">
+          </div>
+          <div class="col s12 m2">
+             <label>UOM</label>
+             <input id="j-uom" type="text" readonly style="background:#f5f5f5;">
+          </div>
+          <div class="col s12 m3">
+             <label>Due Date</label>
+             <input id="j-due" type="date">
+          </div>
+          <div class="col s12 m3">
+             <label>Note</label>
+             <input id="j-note" type="text">
+          </div>
+       </div>
+
+       <div class="divider" style="margin:20px 0;"></div>
+       
+       <button id="btnSave" class="btn-large cyan darken-2 w-100" disabled>
+           Verify Item First
+       </button>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Global Data
+  let masterItems = []; 
+
+  document.addEventListener('DOMContentLoaded', () => { 
+      M.AutoInit(); 
+      loadJobs();
+      // Pre-load items for Name lookup
+      google.script.run.withSuccessHandler(data => masterItems = data.items).api_getMasterDataForBOM(); 
+  });
+
+  function loadJobs() {
+      const tbody = document.getElementById('job-tbody');
+      tbody.innerHTML = '<tr><td colspan="8">Loading...</td></tr>';
+      
+      google.script.run.withSuccessHandler(list => {
+          tbody.innerHTML = '';
+          if(list.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No Active Jobs</td></tr>'; return; }
+          
+          list.forEach(j => {
+              // Status Badge Logic
+              let cls = 'st-planned';
+              if(j.status==='WIP') cls = 'st-wip';
+              if(j.status==='Completed') cls = 'st-completed';
+              
+              // Format Date
+              let d = new Date(j.dueDate);
+              let dateStr = d.toLocaleDateString('en-GB');
+
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td><b>${j.jobNo}</b></td>
+                <td>${new Date(j.jobDate).toLocaleDateString('en-GB')}</td>
+                <td class="left-align">${j.itemCode}<br><small class="grey-text">${j.itemName}</small></td>
+                <td>${j.planQty} ${j.uom}</td>
+                <td>${dateStr}</td>
+                <td>${j.lotNo}</td>
+                <td><span class="badge-status ${cls}">${j.status}</span></td>
+                <td>
+                   ${j.status === 'Planned' ? `<button class="btn-small orange" onclick="setStatus('${j.jobNo}', 'WIP')">Start</button>` : ''}
+                   ${j.status === 'WIP' ? `<button class="btn-small green" onclick="setStatus('${j.jobNo}', 'Completed')">Finish</button>` : ''}
+                </td>
+              `;
+              tbody.appendChild(tr);
+          });
+          toggleView('list');
+      }).api_getAllJobs();
+  }
+
+  // --- Create Logic ---
+  function checkBOM() {
+      const code = document.getElementById('j-item-code').value.trim().toUpperCase();
+      const helper = document.getElementById('bom-helper');
+      const btn = document.getElementById('btnSave');
+      
+      if(!code) return;
+      
+      // 1. Lookup Name & UOM locally
+      const item = masterItems.find(i => i.code === code);
+      if(item) {
+          document.getElementById('j-item-name').value = item.name;
+          document.getElementById('j-uom').value = item.uom;
+      } else {
+          document.getElementById('j-item-name').value = 'Unknown Item';
+      }
+
+      // 2. Lookup BOM from Server
+      helper.innerText = 'Checking BOM...';
+      helper.className = 'helper-text';
+      
+      google.script.run.withSuccessHandler(res => {
+          if(res.success) {
+              document.getElementById('j-bom-id').value = res.bomId;
+              helper.innerText = '✅ BOM Found: ' + res.bomId;
+              helper.className = 'helper-text green-text';
+              btn.disabled = false;
+              btn.innerText = 'Confirm & Create Job';
+          } else {
+              document.getElementById('j-bom-id').value = '';
+              helper.innerText = '❌ No Active BOM Found. Cannot open Job.';
+              helper.className = 'helper-text red-text';
+              btn.disabled = true;
+              btn.innerText = 'BOM Missing';
+          }
+      }).api_findActiveBOM(code);
+  }
+
+  document.getElementById('btnSave').addEventListener('click', function() {
+      const data = {
+          itemCode: document.getElementById('j-item-code').value.trim(),
+          itemName: document.getElementById('j-item-name').value,
+          planQty: document.getElementById('j-qty').value,
+          uom: document.getElementById('j-uom').value,
+          dueDate: document.getElementById('j-due').value,
+          bomId: document.getElementById('j-bom-id').value,
+          lotNo: document.getElementById('j-lot').value,
+          note: document.getElementById('j-note').value
+      };
+
+      if(!data.planQty || !data.dueDate) { Swal.fire('Error', 'Qty & Date Required', 'error'); return; }
+
+      const btn = this; btn.disabled = true; btn.innerText = 'Creating...';
+      
+      google.script.run.withSuccessHandler(res => {
+          if(res.success) {
+              Swal.fire('Created', res.message, 'success');
+              closeForm();
+              loadJobs();
+          } else {
+              Swal.fire('Error', res.message, 'error');
+              btn.disabled = false;
+          }
+      }).api_saveJobOrder(data);
+  });
+
+  function setStatus(jobNo, status) {
+      Swal.fire({
+         title: `Update to ${status}?`,
+         text: `Job: ${jobNo}`,
+         showCancelButton: true
+      }).then(r => {
+         if(r.isConfirmed) {
+             google.script.run.withSuccessHandler(res => {
+                 if(res.success) { M.toast({html: 'Updated'}); loadJobs(); }
+             }).api_updateJobStatus(jobNo, status);
+         }
+      });
+  }
+
+  // --- UI Helpers ---
+  function openCreate() {
+      document.querySelectorAll('input').forEach(i => i.value = '');
+      document.getElementById('bom-helper').innerText = '';
+      document.getElementById('btnSave').disabled = true;
+      document.getElementById('btnSave').innerText = 'Verify Item First';
+      toggleView('form');
+  }
+  function closeForm() { toggleView('list'); }
+  function toggleView(view) {
+      document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
+      document.getElementById('formView').style.display = view === 'form' ? 'block' : 'none';
+  }
+</script>
+
+</body>
+</html>
