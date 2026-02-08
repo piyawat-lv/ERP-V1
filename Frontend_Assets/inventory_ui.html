@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    body { background-color: #f4f6f8; font-family: 'Segoe UI', Roboto, sans-serif; }
+    .module-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    
+    /* Tabs & Card */
+    .nav-tabs { display:flex; gap:10px; margin-bottom:20px; }
+    .nav-btn { flex:1; padding:15px; background:white; border:1px solid #ddd; border-radius:8px; cursor:pointer; text-align:center; font-weight:bold; color:#546e7a; transition:0.3s; }
+    .nav-btn.active { background:#00897b; color:white; border-color:#00897b; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .nav-btn:hover:not(.active) { background:#e0f2f1; }
+    
+    .view-section { display: none; }
+    .active-section { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+    .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    
+    /* Form Styles */
+    .input-group { margin-bottom: 15px; }
+    label { font-weight: 500; color: #37474f; }
+    input, select { border: 1px solid #cfd8dc !important; border-radius: 4px !important; padding: 0 10px !important; height: 2.5rem !important; box-shadow: none !important; box-sizing: border-box !important; }
+    input:focus, select:focus { border-color: #00897b !important; }
+    .readonly { background-color: #f5f5f5; color: #757575; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th { background: #eceff1; padding: 10px; font-size: 0.85rem; }
+    td { padding: 8px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+<div class="module-container">
+  <h5 style="color:#00695c; font-weight:800; margin-bottom:20px;">Inventory Management</h5>
+
+  <div class="nav-tabs">
+      <div class="nav-btn active" onclick="switchTab('trans')"><i class="material-icons tiny">swap_horiz</i> IN-OUT Transaction</div>
+      <div class="nav-btn" onclick="switchTab('onhand')"><i class="material-icons tiny">inventory_2</i> Stock On-Hand</div>
+      <div class="nav-btn" onclick="switchTab('move')"><i class="material-icons tiny">history</i> Movement Report</div>
+  </div>
+
+  <div id="view-trans" class="view-section active-section">
+      <div class="card">
+          <h6 style="font-weight:bold; color:#00897b; border-bottom:2px solid #b2dfdb; padding-bottom:10px; margin-bottom:20px;">Record Transaction</h6>
+          
+          <div class="row">
+              <div class="col s12 m2">
+                  <label>Type</label>
+                  <select id="t-type" class="browser-default" onchange="toggleQtyColor()">
+                      <option value="IN">IN (รับเข้า)</option>
+                      <option value="OUT">OUT (จ่ายออก)</option>
+                      <option value="ADJ">ADJ (ปรับยอด)</option>
+                  </select>
+              </div>
+              <div class="col s12 m2">
+                  <label>Sub Type</label>
+                  <select id="t-subtype" class="browser-default">
+                      <option value="RM">RM</option>
+                      <option value="PK">PK</option>
+                      <option value="FG">FG</option>
+                      <option value="WIP">WIP</option>
+                      <option value="Return">Return</option>
+                  </select>
+              </div>
+              <div class="col s12 m2">
+                  <label>Date</label>
+                  <input id="t-date" type="date">
+              </div>
+              <div class="col s12 m3">
+                  <label>Ref Doc (PO/Job/Inv)</label>
+                  <input id="t-ref" type="text" placeholder="e.g. PO-001">
+              </div>
+              <div class="col s12 m3">
+                  <label>Note</label>
+                  <input id="t-note" type="text">
+              </div>
+          </div>
+
+          <div class="row" style="background:#f9fbe7; padding:15px; border-radius:8px; margin-top:10px;">
+              <div class="col s12 m3">
+                  <label>Item Code</label>
+                  <input id="t-code" type="text" onchange="lookupItemName()" placeholder="Scan Code">
+              </div>
+              <div class="col s12 m4">
+                  <label>Item Name (Auto)</label>
+                  <input id="t-name" type="text" readonly class="readonly">
+              </div>
+               <div class="col s12 m2">
+                  <label>UOM (Auto)</label>
+                  <input id="t-uom" type="text" readonly class="readonly">
+              </div>
+              <div class="col s12 m3">
+                  <label>Lot No.</label>
+                  <input id="t-lot" type="text">
+              </div>
+          </div>
+
+          <div class="row" style="margin-top:15px;">
+              <div class="col s12 m3">
+                  <label>Mfg Date</label>
+                  <input id="t-mfg" type="date">
+              </div>
+              <div class="col s12 m3">
+                  <label>Exp Date</label>
+                  <input id="t-exp" type="date">
+              </div>
+              <div class="col s12 m3">
+                  <label>Status</label>
+                  <select id="t-status" class="browser-default">
+                      <option value="AVG" selected>AVG (ปกติ)</option>
+                      <option value="Damage">Damage (เสียหาย)</option>
+                      <option value="Expired">หมดอายุ</option>
+                  </select>
+              </div>
+              <div class="col s12 m3">
+                  <label>Location</label>
+                  <input id="t-loc" type="text" placeholder="WH-xx-xx">
+              </div>
+          </div>
+
+          <div class="row" style="margin-top:20px; align-items:flex-end; display:flex;">
+              <div class="col s12 m4">
+                  <label>Quantity</label>
+                  <input id="t-qty" type="number" step="0.01" style="font-size:1.5rem; font-weight:bold; color:#00897b;">
+                  <span class="helper-text" id="qty-helper">Positive for IN, Negative for OUT</span>
+              </div>
+              <div class="col s12 m8">
+                  <button class="btn-large waves-effect waves-light w-100" style="background-color:#00897b;" onclick="saveTrans()">
+                      <i class="material-icons left">save</i> Save Transaction
+                  </button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div id="view-onhand" class="view-section">
+      <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h6 style="font-weight:bold; color:#1565c0;">Current Stock On-Hand</h6>
+              <button class="btn green darken-1" onclick="loadOnHand(true)">
+                  <i class="material-icons left">download</i> Refresh & Export CSV
+              </button>
+          </div>
+          <p class="grey-text">Reference from 'Inventory_onhand' sheet (Auto Calculated)</p>
+          
+          <div style="overflow-x:auto; max-height:500px;">
+              <table class="striped centered">
+                  <thead>
+                      <tr><th>Item Code</th><th>Name</th><th>Lot</th><th>Loc</th><th>Status</th><th>Qty</th><th>UOM</th></tr>
+                  </thead>
+                  <tbody id="onhand-tbody">
+                      <tr><td colspan="7">Click 'Refresh' to load data</td></tr>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+  </div>
+
+  <div id="view-move" class="view-section">
+      <div class="card">
+          <h6 style="font-weight:bold; color:#e65100;">Movement History Report</h6>
+          <div class="row" style="margin-top:20px; align-items:flex-end; display:flex;">
+              <div class="col s12 m3">
+                  <label>Transaction Type</label>
+                  <select id="r-type" class="browser-default">
+                      <option value="ALL">ALL (ทั้งหมด)</option>
+                      <option value="IN">IN</option>
+                      <option value="OUT">OUT</option>
+                      <option value="ADJ">ADJ</option>
+                  </select>
+              </div>
+              <div class="col s12 m3">
+                  <label>Start Date</label>
+                  <input id="r-start" type="date">
+              </div>
+              <div class="col s12 m3">
+                  <label>End Date</label>
+                  <input id="r-end" type="date">
+              </div>
+              <div class="col s12 m3">
+                  <button class="btn deep-orange darken-1 w-100" onclick="exportMovement()">
+                      <i class="material-icons left">file_download</i> Export CSV
+                  </button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // --- Init ---
+  document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('t-date').value = today;
+      document.getElementById('r-start').value = today;
+      document.getElementById('r-end').value = today;
+  });
+
+  function switchTab(tab) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-section'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('view-'+tab).classList.add('active-section');
+      // Highlight active button logic (simplified)
+      const btns = document.querySelectorAll('.nav-btn');
+      if(tab==='trans') btns[0].classList.add('active');
+      if(tab==='onhand') btns[1].classList.add('active');
+      if(tab==='move') btns[2].classList.add('active');
+      
+      if(tab === 'onhand') loadOnHand(false); // Load preview
+  }
+
+  // --- 1. Transaction Logic ---
+  function toggleQtyColor() {
+      const type = document.getElementById('t-type').value;
+      const qInput = document.getElementById('t-qty');
+      const helper = document.getElementById('qty-helper');
+      
+      if(type === 'OUT') {
+          qInput.style.color = '#c62828'; // Red
+          helper.innerText = 'For OUT, just enter the number (System will deduct)';
+      } else if (type === 'ADJ') {
+          qInput.style.color = '#f57c00'; // Orange
+          helper.innerText = 'For ADJ: Enter positive to ADD, negative to REDUCE (-)';
+      } else {
+          qInput.style.color = '#00897b'; // Green
+          helper.innerText = 'Enter quantity to receive';
+      }
+  }
+
+  function lookupItemName() {
+      const code = document.getElementById('t-code').value.trim();
+      if(!code) return;
+      // Note: In real app, call server. Here assuming user knows code or simple validation
+      // VLOOKUP Happens at Server Side Save, but for UI experience we can add a lookup call if needed.
+      // For now, let's rely on Server Save to get Name/UOM to keep code light, 
+      // OR re-use api_getItemInfo from previous revision.
+  }
+
+  function saveTrans() {
+      const data = {
+          type: document.getElementById('t-type').value,
+          subType: document.getElementById('t-subtype').value,
+          date: document.getElementById('t-date').value,
+          refDoc: document.getElementById('t-ref').value,
+          note: document.getElementById('t-note').value,
+          itemCode: document.getElementById('t-code').value.trim(),
+          lotNo: document.getElementById('t-lot').value,
+          mfgDate: document.getElementById('t-mfg').value,
+          expDate: document.getElementById('t-exp').value,
+          itemStatus: document.getElementById('t-status').value,
+          location: document.getElementById('t-loc').value,
+          qty: document.getElementById('t-qty').value
+      };
+
+      if(!data.itemCode || !data.qty) { Swal.fire('Error','Item Code and Qty required','error'); return; }
+
+      const btn = document.querySelector('button[onclick="saveTrans()"]');
+      btn.disabled = true; btn.innerText = 'Saving...';
+
+      google.script.run.withSuccessHandler(res => {
+          btn.disabled = false; btn.innerHTML = '<i class="material-icons left">save</i> Save Transaction';
+          if(res.success) {
+              Swal.fire('Saved', res.message, 'success');
+              // Clear key fields
+              document.getElementById('t-qty').value = '';
+              document.getElementById('t-code').value = '';
+          } else {
+              Swal.fire('Error', res.message, 'error');
+          }
+      }).api_saveInvTransaction(data);
+  }
+
+  // --- 2. Stock On-Hand Logic ---
+  function loadOnHand(isExport) {
+      const tbody = document.getElementById('onhand-tbody');
+      tbody.innerHTML = '<tr><td colspan="7">Loading & Calculating...</td></tr>';
+      
+      google.script.run.withSuccessHandler(res => {
+          tbody.innerHTML = '';
+          if(res.displayData.length === 0) { tbody.innerHTML = '<tr><td colspan="7">No Stock</td></tr>'; return; }
+          
+          // Render Table
+          res.displayData.forEach(r => {
+              const tr = document.createElement('tr');
+              // r = [Code, Name, Lot, Loc, Status, Qty, UOM, Update]
+              tr.innerHTML = `<td><b>${r[0]}</b></td><td class="left-align">${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td style="font-weight:bold; color:#0d47a1;">${r[5]}</td><td>${r[6]}</td>`;
+              tbody.appendChild(tr);
+          });
+
+          // Trigger Download if requested
+          if(isExport) {
+              downloadCSV(res.csvData, res.fileName);
+              M.toast({html: 'CSV Downloaded'});
+          }
+      }).api_getReportOnHand();
+  }
+
+  // --- 3. Movement Report Logic ---
+  function exportMovement() {
+      const type = document.getElementById('r-type').value;
+      const start = document.getElementById('r-start').value;
+      const end = document.getElementById('r-end').value;
+
+      if(!start || !end) { M.toast({html:'Select Dates'}); return; }
+      
+      Swal.fire({title:'Generating...', didOpen:()=>Swal.showLoading()});
+
+      google.script.run.withSuccessHandler(res => {
+          Swal.close();
+          if(res.success) {
+              downloadCSV(res.csvData, res.fileName);
+              Swal.fire('Success', 'Downloaded: ' + res.fileName, 'success');
+          } else {
+              Swal.fire('Error', res.message, 'error');
+          }
+      }).api_getReportMovement(type, start, end);
+  }
+
+  // Helper
+  function downloadCSV(csv, filename) {
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  }
+</script>
+
+</body>
+</html>
