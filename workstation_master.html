@@ -5,28 +5,17 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
+    /* CSS เดิม */
     body { background-color: #f4f6f8; font-family: 'Segoe UI', Roboto, sans-serif; }
     .module-container { max-width: 1000px; margin: 0 auto; padding: 20px; padding-bottom: 80px; }
-    
-    /* Card Styles */
     .card { border-radius: 8px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-    .card-title { font-weight: 700; color: #37474f; }
-
-    /* Table */
     table.striped > tbody > tr:nth-child(odd) { background-color: #fafafa; }
     th { color: #546e7a; font-weight: 600; }
-    
-    /* Inputs */
-    input:not([type]), input[type=text]:not(.browser-default) { border-bottom: 1px solid #cfd8dc; }
-    input:focus:not([type]), input[type=text]:focus:not(.browser-default) { border-bottom: 1px solid #00897b; box-shadow: 0 1px 0 0 #00897b; }
-
-    /* Views Logic */
-    #listView, #formView { display: none; animation: fadeIn 0.3s; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    .status-active { color: #2e7d32; font-weight: bold; background: #e8f5e9; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
-    .status-maintenance { color: #f57f17; font-weight: bold; background: #fff8e1; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
-    .status-inactive { color: #c62828; font-weight: bold; background: #ffebee; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+    input:not([type]), input[type=text]:not(.browser-default), input[type=number]:not(.browser-default) { border-bottom: 1px solid #cfd8dc; }
+    #listView, #formView { display: none; }
+    .status-active { color: #2e7d32; background: #e8f5e9; padding: 2px 8px; border-radius: 4px; font-weight:bold; }
+    .status-inactive { color: #c62828; background: #ffebee; padding: 2px 8px; border-radius: 4px; font-weight:bold; }
+    .status-maintenance { color: #ef6c00; background: #fff3e0; padding: 2px 8px; border-radius: 4px; font-weight:bold; }
   </style>
 </head>
 <body>
@@ -35,22 +24,18 @@
 
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
      <div>
-       <h5 style="margin:0; font-weight:700; color:#37474f;">Work Station Master</h5>
-       <span class="grey-text">Machine & Equipment Register</span>
+       <h5 style="margin:0; font-weight:700; color:#37474f;">Work Station Master (Rev.02)</h5>
+       <span class="grey-text">Machine Register & Capacity</span>
      </div>
-     <button class="btn btn-large teal lighten-1 waves-effect waves-light" onclick="openCreate()">
+     <button class="btn btn-large teal lighten-1 waves-effect" onclick="openCreate()">
        <i class="material-icons left">add</i> New Machine
      </button>
   </div>
 
   <div id="listView" class="card" style="padding:20px;">
-     <div class="row">
-        <div class="col s12 m6">
-           <div class="input-field">
-              <i class="material-icons prefix">search</i>
-              <input id="search-input" type="text" onkeyup="filterTable()" placeholder="Search Code, Name, Type...">
-           </div>
-        </div>
+     <div class="input-field" style="max-width:300px;">
+        <i class="material-icons prefix">search</i>
+        <input id="search-input" type="text" onkeyup="filterTable()" placeholder="Search Code, Name...">
      </div>
      <div style="overflow-x:auto;">
        <table class="striped centered">
@@ -60,8 +45,7 @@
              <th class="left-align">Name</th>
              <th>Type</th>
              <th>Model</th>
-             <th>Capacity/Hr</th>
-             <th>Status</th>
+             <th>Capacity / Hour</th> <th>Status</th>
              <th>Action</th>
            </tr>
          </thead>
@@ -81,7 +65,7 @@
         
         <div class="row">
            <div class="col s12 m4">
-              <label>Machine Code (Station Code) *</label>
+              <label>Machine Code *</label>
               <div style="display:flex;">
                  <input id="w-code" type="text" style="text-transform:uppercase; font-weight:bold;">
                  <button class="btn-small teal lighten-2" onclick="checkCode()" style="margin-left:5px;"><i class="material-icons">search</i></button>
@@ -99,40 +83,51 @@
               <label>Machine Type</label>
               <select id="w-type" class="browser-default" style="background:white; border:1px solid #ccc;">
                  <option value="" disabled selected>Select Type</option>
-                 <option value="Mixing">Mixing (เครื่องผสม)</option>
-                 <option value="Filling">Filling (เครื่องบรรจุ)</option>
-                 <option value="Packing">Packing (เครื่องแพ็ค)</option>
-                 <option value="Labelling">Labelling (ติดฉลาก)</option>
-                 <option value="Inspection">Inspection (ตรวจสอบ)</option>
+                 <option value="Mixing">Mixing</option>
+                 <option value="Filling">Filling</option>
+                 <option value="Packing">Packing</option>
+                 <option value="Labelling">Labelling</option>
+                 <option value="Inspection">Inspection</option>
                  <option value="Other">Other</option>
               </select>
            </div>
-           
            <div class="col s12 m4">
               <label>Model / Brand</label>
-              <input id="w-model" type="text" placeholder="ex. Brand X - Model V2">
+              <input id="w-model" type="text">
            </div>
-
            <div class="col s12 m4">
               <label>Status</label>
               <select id="w-status" class="browser-default" style="background:white; border:1px solid #ccc;">
-                 <option value="Active">Active (พร้อมใช้งาน)</option>
-                 <option value="Maintenance">Maintenance (ซ่อมบำรุง)</option>
-                 <option value="Inactive">Inactive (เลิกใช้งาน)</option>
+                 <option value="Active">Active</option>
+                 <option value="Maintenance">Maintenance</option>
+                 <option value="Inactive">Inactive</option>
               </select>
            </div>
         </div>
 
-        <div class="row" style="margin-top:20px;">
+        <div class="row" style="margin-top:20px; background:#e0f2f1; padding:20px; border-radius:8px;">
+           <div class="col s12"><h6 class="teal-text" style="margin-top:0;">Production Capacity</h6></div>
+           
            <div class="col s12 m6">
-              <label>Capacity per Hour (ความสามารถในการผลิต/ชม.)</label>
-              <input id="w-capacity" type="text" placeholder="ex. 1000 PCS or 500 KG">
-              <span class="helper-text grey-text">ระบุตัวเลขและหน่วย (เพื่อใช้อ้างอิงการวางแผน)</span>
+              <label>Capacity per Hour (ระบุเฉพาะตัวเลข)</label>
+              <input id="w-capacity" type="number" placeholder="e.g. 1000"> 
+           </div>
+           
+           <div class="col s12 m6">
+              <label>Unit of Measure (UOM)</label>
+              <select id="w-capacity-uom" class="browser-default" style="background:white; border:1px solid #ccc;">
+                  <option value="" disabled selected>Select UOM</option>
+                  <option value="PCS">PCS (ชิ้น)</option>
+                  <option value="KGS">KGS (กิโลกรัม)</option>
+                  <option value="BOT">BOT (ขวด)</option>
+                  <option value="SET">SET (ชุด)</option>
+                  <option value="BOX">BOX (กล่อง)</option>
+                  <option value="LTR">LTR (ลิตร)</option>
+              </select>
            </div>
         </div>
 
         <div class="divider" style="margin:30px 0;"></div>
-        
         <button id="btnSave" class="btn-large teal darken-1 w-100 waves-effect waves-light" style="width:100%;">
            <i class="material-icons left">save</i> Save Work Station
         </button>
@@ -147,12 +142,9 @@
 <script>
   let allStations = [];
 
-  document.addEventListener('DOMContentLoaded', () => {
-     M.AutoInit();
-     loadTable();
-  });
+  document.addEventListener('DOMContentLoaded', () => { M.AutoInit(); loadTable(); });
 
-  // --- Load Data ---
+  // --- Load & Render ---
   function loadTable() {
      const tbody = document.getElementById('ws-tbody');
      tbody.innerHTML = '<tr><td colspan="7">Loading...</td></tr>';
@@ -167,23 +159,25 @@
   function renderTable(data) {
      const tbody = document.getElementById('ws-tbody');
      tbody.innerHTML = '';
-     if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="7">No Work Station Found</td></tr>'; return; }
+     if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="7">No Data</td></tr>'; return; }
 
      data.forEach(item => {
         const tr = document.createElement('tr');
         tr.dataset.json = JSON.stringify(item);
         
-        // Status Class
         let statusClass = 'status-active';
         if(item.status === 'Maintenance') statusClass = 'status-maintenance';
         if(item.status === 'Inactive') statusClass = 'status-inactive';
+
+        // แสดงผลรวม Capacity + UOM
+        const capDisplay = (item.capacity > 0) ? `<b>${item.capacity}</b> <span class="grey-text">${item.capacityUOM || ''}</span>` : '-';
 
         tr.innerHTML = `
            <td><b>${item.code}</b></td>
            <td class="left-align">${item.name}</td>
            <td>${item.type}</td>
            <td>${item.model}</td>
-           <td>${item.capacity}</td>
+           <td>${capDisplay}</td> 
            <td><span class="${statusClass}">${item.status}</span></td>
            <td>
               <button class="btn-small btn-flat" onclick="editStation(this)">
@@ -199,35 +193,33 @@
   function filterTable() {
      const input = document.getElementById('search-input').value.toUpperCase();
      const filtered = allStations.filter(item => 
-        item.code.toUpperCase().includes(input) || 
-        item.name.toUpperCase().includes(input) ||
-        item.type.toUpperCase().includes(input)
+        item.code.toUpperCase().includes(input) || item.name.toUpperCase().includes(input)
      );
      renderTable(filtered);
   }
 
-  // --- Form Logic ---
+  // --- UI Logic ---
   function openCreate() {
      resetForm();
      document.getElementById('listView').style.display = 'none';
      document.getElementById('formView').style.display = 'block';
   }
-
   function closeForm() {
      document.getElementById('formView').style.display = 'none';
      document.getElementById('listView').style.display = 'block';
   }
-
   function resetForm() {
      document.getElementById('edit-id').value = '';
      document.querySelectorAll('input').forEach(i => i.value = '');
      document.getElementById('w-status').value = 'Active';
      document.getElementById('w-type').selectedIndex = 0;
+     document.getElementById('w-capacity-uom').selectedIndex = 0; // Reset UOM
      document.getElementById('code-helper').innerText = '';
      document.getElementById('formHeader').innerText = 'Register New Machine';
-     document.getElementById('btnSave').innerHTML = '<i class="material-icons left">save</i> Save Work Station';
+     document.getElementById('btnSave').innerText = 'Save Work Station';
   }
 
+  // --- Edit Logic ---
   window.editStation = function(btn) {
      const item = JSON.parse(btn.closest('tr').dataset.json);
      
@@ -236,33 +228,21 @@
      document.getElementById('w-name').value = item.name;
      document.getElementById('w-type').value = item.type;
      document.getElementById('w-model').value = item.model;
-     document.getElementById('w-capacity').value = item.capacity;
      document.getElementById('w-status').value = item.status;
+     
+     // Set Capacity & UOM
+     document.getElementById('w-capacity').value = item.capacity;
+     document.getElementById('w-capacity-uom').value = item.capacityUOM || '';
 
      document.getElementById('formHeader').innerText = 'Edit: ' + item.code;
-     document.getElementById('btnSave').innerHTML = '<i class="material-icons left">save</i> Update Work Station';
+     document.getElementById('btnSave').innerText = 'Update Work Station';
 
      document.getElementById('listView').style.display = 'none';
      document.getElementById('formView').style.display = 'block';
      M.updateTextFields();
   };
 
-  function checkCode() {
-     const code = document.getElementById('w-code').value.trim();
-     const helper = document.getElementById('code-helper');
-     if(!code) { M.toast({html:'Enter code'}); return; }
-     
-     helper.innerText = 'Checking...';
-     google.script.run.withSuccessHandler(res => {
-        if(res.status === 'AVAILABLE') {
-           helper.innerText = '✅ Available'; helper.style.color = 'green';
-        } else {
-           helper.innerText = '❌ Duplicate!'; helper.style.color = 'red';
-        }
-     }).api_checkStationCode(code);
-  }
-
-  // --- Save ---
+  // --- Save Logic ---
   document.getElementById('btnSave').addEventListener('click', function() {
      const id = document.getElementById('edit-id').value;
      const code = document.getElementById('w-code').value.trim();
@@ -276,8 +256,10 @@
         name: name,
         type: document.getElementById('w-type').value,
         model: document.getElementById('w-model').value,
+        status: document.getElementById('w-status').value,
+        // Capacity Data
         capacity: document.getElementById('w-capacity').value,
-        status: document.getElementById('w-status').value
+        capacityUOM: document.getElementById('w-capacity-uom').value
      };
 
      const btn = this; btn.disabled = true; btn.innerText = 'Saving...';
@@ -293,7 +275,21 @@
         }
      }).api_saveWorkStation(data);
   });
-
+  
+  // Check Duplicate Code
+  function checkCode() { /* Logic เดิม เหมือน Rev.01 */ 
+     const code = document.getElementById('w-code').value.trim();
+     const helper = document.getElementById('code-helper');
+     if(!code) return;
+     helper.innerText = 'Checking...';
+     google.script.run.withSuccessHandler(res => {
+        if(res.status === 'AVAILABLE') {
+           helper.innerText = '✅ Available'; helper.style.color = 'green';
+        } else {
+           helper.innerText = '❌ Duplicate!'; helper.style.color = 'red';
+        }
+     }).api_checkStationCode(code);
+  }
 </script>
 
 </body>
