@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f5f5f5;
+      }
+      .login-card {
+        width: 400px;
+        padding: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card login-card">
+      <h4 class="center-align">ERP Login</h4>
+      <div class="row">
+        <div class="input-field col s12">
+          <input id="username" type="text" class="validate">
+          <label for="username">Username</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s12">
+          <input id="password" type="password" class="validate">
+          <label for="password">Password</label>
+        </div>
+      </div>
+      <div class="row center-align">
+        <button id="loginBtn" class="btn waves-effect waves-light">Login</button>
+      </div>
+      <div id="loader" class="progress" style="display: none;">
+          <div class="indeterminate"></div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+      document.getElementById('loginBtn').addEventListener('click', function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const loader = document.getElementById('loader');
+
+        if (!username || !password) {
+          M.toast({html: 'Username and Password are required.'});
+          return;
+        }
+
+        loader.style.display = 'block';
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              sessionStorage.setItem('authToken', result.token); 
+              M.toast({html: 'Login successful! Getting dashboard...'});
+              // After successful login, get the correct dashboard URL from the server
+              google.script.run
+                .withSuccessHandler(function(dashboardUrl) {
+                  window.open(dashboardUrl, '_top'); // Redirect to the server-provided URL
+                })
+                .withFailureHandler(function(err) {
+                  M.toast({html: 'Could not get dashboard URL: ' + err.message});
+                  loader.style.display = 'none';
+                })
+                .getDashboardUrl();
+            } else {
+              M.toast({html: result.message});
+              loader.style.display = 'none';
+            }
+          })
+          .withFailureHandler(function(error) {
+            M.toast({html: 'Login Error: ' + error.message});
+            loader.style.display = 'none';
+          })
+          .login(username, password);
+      });
+    </script>
+  </body>
+</html>

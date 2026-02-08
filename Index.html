@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>Oracle ERP V1</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #5c6bc0;
+      --primary-dark: #3949ab;
+      --bg-light: #f5f7fa;
+      --card-hover: translateY(-5px);
+    }
+
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background-color: var(--bg-light);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    /* Navbar */
+    nav {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      padding: 0 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .brand-logo { font-weight: 600; font-size: 1.5rem !important; }
+    
+    #back-btn-wrapper { display: none; margin-right: 15px; cursor: pointer; }
+    #back-btn-wrapper i { font-size: 2rem; vertical-align: middle; }
+
+    /* --- Dashboard Grid --- */
+    #dashboard-view {
+      padding: 60px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    #dashboard-view .row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .menu-card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      border: 1px solid #eee;
+      height: 100%;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .menu-card:hover {
+      transform: var(--card-hover);
+      box-shadow: 0 10px 25px rgba(92, 107, 192, 0.2);
+      border-color: var(--primary);
+    }
+
+    .menu-icon {
+      font-size: 3.5rem;
+      margin-bottom: 20px;
+      color: var(--primary);
+      background: #e8eaf6;
+      padding: 18px;
+      border-radius: 50%;
+    }
+
+    .menu-title { font-size: 1.1rem; font-weight: 600; color: #333; margin-bottom: 5px; }
+    .menu-desc { font-size: 0.85rem; color: #777; line-height: 1.4; }
+
+    /* --- [NEW] Disabled State (สีเทา & กดไม่ได้) --- */
+    .disabled-module {
+      background-color: #f5f5f5 !important; /* พื้นหลังเทา */
+      border-color: #e0e0e0 !important;
+      cursor: not-allowed !important; /* เมาส์เป็นรูปห้าม */
+      pointer-events: none; /* ห้ามคลิกเด็ดขาด */
+      box-shadow: none !important;
+      transform: none !important;
+      opacity: 0.7;
+    }
+    
+    /* บังคับสีไอคอนและตัวหนังสือให้เป็นสีเทา */
+    .disabled-module .menu-icon {
+      background-color: #e0e0e0 !important;
+      color: #bdbdbd !important;
+    }
+    .disabled-module .menu-title {
+      color: #9e9e9e !important;
+    }
+    .disabled-module .menu-desc {
+      color: #bdbdbd !important;
+    }
+
+    /* Module View */
+    #module-view {
+      display: none;
+      padding: 20px;
+      flex-grow: 1;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    #main-loader {
+      position: fixed; top: 0; left: 0; width: 100%; height: 5px;
+      z-index: 9999; display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-wrapper">
+      <a id="back-btn-wrapper" class="left" onclick="goBackToDashboard()">
+        <i class="material-icons">arrow_back</i>
+      </a>
+      <a href="#" class="brand-logo left" id="nav-title">Oracle ERP</a>
+      
+      <ul id="nav-mobile" class="right" style="display:flex; align-items:center; height:64px;">
+        <li style="margin-right: 15px; display:flex; align-items:center;">
+            <i class="material-icons left" style="margin-right:8px; font-size:1.5rem;">account_circle</i>
+            <span id="user-display-name" style="font-weight:600; font-size:0.95rem;">Loading...</span>
+        </li>
+        <li>
+            <a onclick="logout()" class="waves-effect waves-light btn-small z-depth-0" 
+               style="background-color:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.4); 
+                      border-radius:20px; text-transform:none; font-weight:600; 
+                      display:flex; align-items:center; height:36px; line-height:34px; padding:0 15px; margin-left:10px;">
+                <i class="material-icons left" style="font-size:1.2rem; margin-right:5px;">logout</i>
+                Logout
+            </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="progress" id="main-loader"><div class="indeterminate"></div></div>
+
+  <div id="dashboard-view">
+    <div class="row">
+      <div class="col s12 m6 l4 xl3" style="margin-bottom: 20px;">
+        <div class="menu-card" onclick="openModule('ItemMaster_UI', 'Item Master')">
+          <i class="material-icons menu-icon">inventory_2</i>
+          <div class="menu-title">Item Master</div>
+          <div class="menu-desc">Manage SKUs & Products</div>
+        </div>
+      </div>
+
+      <div class="col s12 m6 l4 xl3" style="margin-bottom: 20px;">
+        <div class="menu-card" onclick="openModule('Wms_UI', 'Warehouse (WMS)')">
+          <i class="material-icons menu-icon">warehouse</i>
+          <div class="menu-title">Warehouse (WMS)</div>
+          <div class="menu-desc">Inventory & Transfers</div>
+        </div>
+      </div>
+
+      <div class="col s12 m6 l4 xl3" style="margin-bottom: 20px;">
+        <div class="menu-card" onclick="openModule('Bom_UI', 'BOM Management')">
+          <i class="material-icons menu-icon">account_tree</i>
+          <div class="menu-title">BOM Management</div>
+          <div class="menu-desc">Bill of Materials</div>
+        </div>
+      </div>
+
+      <div class="col s12 m6 l4 xl3" style="margin-bottom: 20px;">
+        <div class="menu-card" onclick="openModule('Mrp_UI', 'MRP Planning')">
+          <i class="material-icons menu-icon">insights</i>
+          <div class="menu-title">MRP Runner</div>
+          <div class="menu-desc">Material Requirements</div>
+        </div>
+      </div>
+
+      <div class="col s12 m6 l4 xl3" style="margin-bottom: 20px;">
+        <div class="menu-card" onclick="openModule('Mes_UI', 'WIP / Manufacturing')">
+          <i class="material-icons menu-icon">factory</i>
+          <div class="menu-title">WIP Jobs</div>
+          <div class="menu-desc">Production Status</div>
+        </div>
+      </div>
+      
+      <div class="col s12 m6 l4 xl3" style="margin-bottom: 20px;">
+        <div class="menu-card" onclick="openModule('InventoryReport_UI', 'Inventory History')">
+          <i class="material-icons menu-icon">history</i>
+          <div class="menu-title">Stock History</div>
+          <div class="menu-desc">Transaction Logs</div>
+        </div>
+      </div>
+
+      <div class="col s12 m6 l4 xl3" id="card-user-mgmt-container" style="margin-bottom: 20px;">
+        <div class="menu-card" id="card-user-mgmt-inner" onclick="openModule('UserManagement_UI', 'User Management')">
+          <i class="material-icons menu-icon">admin_panel_settings</i>
+          <div class="menu-title">User Management</div>
+          <div class="menu-desc">Admin Controls</div>
+        </div>
+      </div>
+
+       <div class="col s12 m6 l4 xl3" style="margin-bottom: 20px;">
+        <div class="menu-card" onclick="openModule('ChangePassword_UI', 'Change Password')">
+          <i class="material-icons menu-icon">lock_reset</i>
+          <div class="menu-title">Change Password</div>
+          <div class="menu-desc">Update Credentials</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="module-view"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = sessionStorage.getItem('authToken');
+        
+        if(!token) {
+            logout(); 
+            return;
+        }
+
+        google.script.run.withSuccessHandler(function(res) {
+            if(res.success) {
+                document.getElementById('user-display-name').innerText = res.username;
+                
+                const perms = res.permissions ? res.permissions.toString() : '';
+                const cardInner = document.getElementById('card-user-mgmt-inner');
+                
+                // [NEW LOGIC] เช็คว่าเป็น Admin หรือไม่?
+                if(perms === 'ALL' || perms.includes('USER_MANAGEMENT')) {
+                    // --- กรณีเป็น Admin ---
+                    // ใส่สีแดงให้เด่นๆ เหมือนเดิม (ถ้าชอบ) หรือจะปล่อยเป็นสีปกติก็ได้
+                    // ในที่นี้ผมใส่สีแดงกลับไปให้ เพื่อให้รู้ว่าเป็นเขตหวงห้าม
+                    cardInner.style.border = '1px dashed #ff5252';
+                    const icon = cardInner.querySelector('.menu-icon');
+                    const title = cardInner.querySelector('.menu-title');
+                    
+                    if(icon) {
+                       icon.style.color = '#ff5252';
+                       icon.style.backgroundColor = '#ffebee';
+                    }
+                    if(title) title.style.color = '#d32f2f';
+
+                } else {
+                    // --- กรณีไม่ใช่ Admin ---
+                    // ใส่ Class 'disabled-module' เพื่อทำให้เป็นสีเทาและกดไม่ได้
+                    cardInner.classList.add('disabled-module');
+                }
+            } else {
+                logout(); 
+            }
+        }).getCurrentUserProfile(token);
+    });
+
+    // ... (ฟังก์ชัน openModule, goBackToDashboard, logout เหมือนเดิม) ...
+    function openModule(pageName, title) {
+      document.getElementById('main-loader').style.display = 'block';
+      google.script.run.withSuccessHandler(function(html) {
+          document.getElementById('dashboard-view').style.display = 'none';
+          const moduleView = document.getElementById('module-view');
+          moduleView.style.display = 'block';
+          setInnerHtmlAndRunScripts(moduleView, html);
+          document.getElementById('back-btn-wrapper').style.display = 'inline-block';
+          document.getElementById('nav-title').innerText = title;
+          document.getElementById('nav-title').classList.remove('left');
+          M.AutoInit();
+          M.updateTextFields();
+          document.getElementById('main-loader').style.display = 'none';
+        }).withFailureHandler(function(err) {
+          M.toast({html: 'Error: ' + err.message});
+          document.getElementById('main-loader').style.display = 'none';
+        }).include(pageName);
+    }
+
+    function setInnerHtmlAndRunScripts(elm, html) {
+      elm.innerHTML = html;
+      const scripts = elm.querySelectorAll("script");
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement("script");
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+      });
+    }
+
+    function goBackToDashboard() {
+      document.getElementById('module-view').style.display = 'none';
+      document.getElementById('dashboard-view').style.display = 'block';
+      document.getElementById('module-view').innerHTML = ''; 
+      document.getElementById('back-btn-wrapper').style.display = 'none';
+      document.getElementById('nav-title').innerText = 'Oracle ERP';
+      document.getElementById('nav-title').classList.add('left');
+    }
+
+    function logout() {
+      google.script.run.withSuccessHandler(function(url){
+         sessionStorage.removeItem('authToken'); 
+         window.open(url, '_top');
+      }).getScriptUrl();
+    }
+  </script>
+</body>
+</html>

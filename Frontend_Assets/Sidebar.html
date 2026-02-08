@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  </head>
+  <body>
+    <div class="collection">
+      <a href="#" class="collection-item" onclick="event.preventDefault(); loadPage('ItemMaster_UI');">Item Master</a>
+      <a href="#" class="collection-item" onclick="event.preventDefault(); loadPage('Wms_UI');">Warehouse (WMS)</a>
+      <a href="#" class="collection-item" onclick="event.preventDefault(); loadPage('Bom_UI');">BOM Management</a>
+      <a href="#" class="collection-item" onclick="event.preventDefault(); loadPage('Mrp_UI');">MRP Runner</a>
+      <a href="#" class="collection-item" onclick="event.preventDefault(); loadPage('Mes_UI');">WIP Jobs</a>
+      <div class="divider"></div>
+      <a href="#" class="collection-item" onclick="event.preventDefault(); loadPage('InventoryReport_UI');"><b>Report:</b> Inventory History</a>
+    </div>
+
+    <script>
+      function loadPage(pageName) {
+        google.script.run
+          .withSuccessHandler(function(html) {
+            // This function is intended to be called from a main page that has a content div
+            // For now, this sidebar is standalone. A full implementation would load the content into a main view.
+            // For example: document.getElementById('content-display').innerHTML = html;
+            console.log(`Request to load ${pageName} was sent.`);
+          })
+          .include(pageName);
+      }
+    </script>
+  </body>
+</html>
+<li class="nav-item">
+  <a href="#" class="nav-link" onclick="loadPage('user_management')">
+    <span class="material-icons">manage_accounts</span>
+    User Management
+  </a>
+</li>
+
+<hr style="border-top: 1px solid #eee; margin: 10px 0;">
+
+<li class="nav-item">
+  <a href="#" class="nav-link" onclick="logoutSystem()" style="color: #d32f2f;">
+    <span class="material-icons">logout</span>
+    Logout
+  </a>
+</li>
+
+<script>
+  // ฟังก์ชัน Logout (ใส่ไว้ใน tag <script> ของหน้าหลัก)
+  function logoutSystem() {
+    if(confirm('ต้องการออกจากระบบใช่หรือไม่?')) {
+      // 1. ลบ Token ที่ฝั่ง Client (ถ้ามีการเก็บไว้)
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('userData');
+      
+      // 2. สั่ง Server ให้ทำลาย Session (ถ้ามี) แล้ว Reload หน้าเว็บกลับไป Login
+      google.script.run
+        .withSuccessHandler(function() {
+           window.top.location = google.script.run.getUrl(); // Reload หน้าเว็บ
+        })
+        .logoutServerSide(); // คุณต้องมีฟังก์ชันนี้ที่ Backend
+    }
+  }
+</script>
+<div class="divider"></div>
+<a href="#" class="collection-item" onclick="event.preventDefault(); loadPage('UserManagement_UI');">👥 Manage Users (Admin)</a>
+<a href="#" class="collection-item" onclick="event.preventDefault(); loadPage('ChangePassword_UI');">🔒 Change Password</a>

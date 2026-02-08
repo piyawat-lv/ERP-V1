@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <style>
+    .container {
+      margin-top: 20px;
+    }
+    #onHandTableContainer {
+      margin-top: 30px;
+    }
+    .loader {
+        display: none;
+        margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h4>Warehouse Management (WMS)</h4>
+
+    <!-- Inventory Transaction Form -->
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">Process Inventory Transaction</span>
+        <div class="row">
+          <div class="input-field col s6">
+            <input id="txn-sku" type="text">
+            <label for="txn-sku">SKU</label>
+          </div>
+          <div class="input-field col s6">
+            <input id="txn-qty" type="number">
+            <label for="txn-qty">Quantity</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="input-field col s6">
+            <input id="txn-from" type="text">
+            <label for="txn-from">From Subinventory</label>
+          </div>
+          <div class="input-field col s6">
+            <input id="txn-to" type="text">
+            <label for="txn-to">To Subinventory</label>
+          </div>
+        </div>
+        <button id="processTxnBtn" class="btn">Process Transaction</button>
+        <div id="txnLoader" class="preloader-wrapper small active loader">
+            <div class="spinner-layer spinner-green-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- On-Hand Quantity Display -->
+    <div id="onHandTableContainer">
+      <h5>On-Hand Quantity</h5>
+      <button id="refreshOnHandBtn" class="btn-small">Refresh</button>
+        <div id="onHandLoader" class="preloader-wrapper small active loader">
+            <div class="spinner-layer spinner-blue-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div>
+        </div>
+      <table class="striped" id="onHandTable">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Subinventory</th>
+            <th>On-Hand Quantity</th>
+            <th>Last Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will be populated by script -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script>
+    function showLoader(id) { document.getElementById(id).style.display = 'block'; }
+    function hideLoader(id) { document.getElementById(id).style.display = 'none'; }
+
+    function fetchOnHand() {
+      showLoader('onHandLoader');
+      google.script.run
+        .withSuccessHandler(function(data) {
+          const tableBody = document.getElementById('onHandTable').getElementsByTagName('tbody')[0];
+          tableBody.innerHTML = ''; // Clear existing data
+          if (data && data.length > 1) { // data[0] is header
+            for (let i = 1; i < data.length; i++) {
+              let row = tableBody.insertRow();
+              row.insertCell(0).innerHTML = data[i][0]; // SKU
+              row.insertCell(1).innerHTML = data[i][1]; // Subinventory
+              row.insertCell(2).innerHTML = data[i][2]; // On_Hand_Qty
+              row.insertCell(3).innerHTML = new Date(data[i][3]).toLocaleString(); // Last_Updated
+            }
+          }
+          hideLoader('onHandLoader');
+        })
+        .withFailureHandler(function(err) {
+            M.toast({html: 'Error fetching on-hand: ' + err.message});
+            hideLoader('onHandLoader');
+        })
+        .getWmsData(); // You will need to create this function in your .gs file
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchOnHand(); // Initial load
+
+      document.getElementById('refreshOnHandBtn').addEventListener('click', fetchOnHand);
+
+      document.getElementById('processTxnBtn').addEventListener('click', function() {
+        const sku = document.getElementById('txn-sku').value;
+        const qty = Number(document.getElementById('txn-qty').value);
+        const from = document.getElementById('txn-from').value;
+        const to = document.getElementById('txn-to').value;
+
+        if (!sku || !qty || !from || !to) {
+          M.toast({html: 'All transaction fields are required.'});
+          return;
+        }
+
+        showLoader('txnLoader');
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if(response.success) {
+                M.toast({html: response.message});
+                fetchOnHand(); // Refresh data after successful transaction
+            } else {
+                M.toast({html: 'Txn Failed: ' + response.message});
+            }
+            hideLoader('txnLoader');
+          })
+          .withFailureHandler(function(err) {
+            M.toast({html: 'Txn Error: ' + err.message});
+            hideLoader('txnLoader');
+          })
+          .processInventoryTransaction(sku, from, to, qty);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <style>
+    .container { margin-top: 20px; }
+    #report-table-container { margin-top: 30px; display: none; }
+    .loader { display: none; margin: 20px auto; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h4>Inventory Transaction History (Stock Card)</h4>
+
+    <div class="card">
+      <div class="card-content">
+        <div class="row">
+          <div class="input-field col s9">
+            <input id="report-sku" type="text">
+            <label for="report-sku">Enter SKU to generate report</label>
+          </div>
+          <div class="input-field col s3">
+            <button id="runReportBtn" class="btn">Generate Report</button>
+          </div>
+        </div>
+        <div id="reportLoader" class="preloader-wrapper small active loader">
+            <div class="spinner-layer spinner-blue-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="report-table-container" class="card">
+        <div class="card-content">
+            <span class="card-title">History for <b id="report-sku-title"></b></span>
+            <table class="striped" id="reportTable">
+                <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Quantity</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Data will be populated by script -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script>
+    function showLoader(id) { document.getElementById(id).style.display = 'block'; }
+    function hideLoader(id) { document.getElementById(id).style.display = 'none'; }
+
+    document.getElementById('runReportBtn').addEventListener('click', function() {
+      const sku = document.getElementById('report-sku').value;
+      if (!sku) {
+        M.toast({html: 'SKU is required.'});
+        return;
+      }
+
+      showLoader('reportLoader');
+      document.getElementById('report-table-container').style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(function(history) {
+            document.getElementById('report-sku-title').innerText = sku;
+            const tableBody = document.getElementById('reportTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+            if (history && history.length > 0) {
+                history.forEach(txn => {
+                    let row = tableBody.insertRow();
+                    row.insertCell(0).innerHTML = txn.timestamp;
+                    row.insertCell(1).innerHTML = txn.user;
+                    row.insertCell(2).innerHTML = txn.from;
+                    row.insertCell(3).innerHTML = txn.to;
+                    row.insertCell(4).innerHTML = txn.quantity;
+                });
+            } else {
+                let row = tableBody.insertRow();
+                let cell = row.insertCell(0);
+                cell.colSpan = 5;
+                cell.innerHTML = 'No transaction history found for this SKU.';
+                cell.style.textAlign = 'center';
+            }
+            document.getElementById('report-table-container').style.display = 'block';
+            hideLoader('reportLoader');
+        })
+        .withFailureHandler(function(err) {
+          M.toast({html: 'Report Error: ' + err.message});
+          hideLoader('reportLoader');
+        })
+        .getInventoryTransactionHistory(sku);
+    });
+  </script>
+</body>
+</html>

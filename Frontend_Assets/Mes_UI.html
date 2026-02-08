@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <style>
+    .container { margin-top: 20px; }
+    .loader { display: none; margin: 20px auto; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h4>WIP Job Management</h4>
+
+    <!-- Complete Job Form -->
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">Complete Work Order</span>
+        <div class="row">
+          <div class="input-field col s8">
+            <input id="job-id" type="text">
+            <label for="job-id">Job ID</label>
+          </div>
+          <div class="input-field col s4">
+            <input id="completed-qty" type="number">
+            <label for="completed-qty">Quantity Completed</label>
+          </div>
+        </div>
+        <button id="completeJobBtn" class="btn">Complete Job</button>
+        <div id="jobLoader" class="preloader-wrapper small active loader">
+            <div class="spinner-layer spinner-green-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WIP Jobs Display -->
+    <div style="margin-top: 30px;">
+      <h5>Current WIP Jobs</h5>
+      <button id="refreshJobsBtn" class="btn-small">Refresh</button>
+      <div id="jobsLoader" class="preloader-wrapper small active loader">
+          <div class="spinner-layer spinner-blue-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div>
+      </div>
+      <table class="striped" id="jobsTable">
+        <thead>
+          <tr>
+            <th>Job ID</th>
+            <th>SKU</th>
+            <th>Qty Required</th>
+            <th>Qty Completed</th>
+            <th>Status</th>
+            <th>Release Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will be populated by script -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script>
+    function showLoader(id) { document.getElementById(id).style.display = 'block'; }
+    function hideLoader(id) { document.getElementById(id).style.display = 'none'; }
+
+    function fetchJobs() {
+      showLoader('jobsLoader');
+      google.script.run
+        .withSuccessHandler(function(data) {
+          const tableBody = document.getElementById('jobsTable').getElementsByTagName('tbody')[0];
+          tableBody.innerHTML = '';
+          if (data && data.length > 1) {
+            for (let i = 1; i < data.length; i++) {
+              let row = tableBody.insertRow();
+              row.insertCell(0).innerHTML = data[i][0]; // Job_ID
+              row.insertCell(1).innerHTML = data[i][1]; // SKU
+              row.insertCell(2).innerHTML = data[i][2]; // Qty_Required
+              row.insertCell(3).innerHTML = data[i][3]; // Qty_Completed
+              row.insertCell(4).innerHTML = data[i][4]; // Status
+              row.insertCell(5).innerHTML = new Date(data[i][5]).toLocaleString(); // Release_Date
+            }
+          }
+          hideLoader('jobsLoader');
+        })
+        .withFailureHandler(function(err) {
+            M.toast({html: 'Error fetching jobs: ' + err.message});
+            hideLoader('jobsLoader');
+        })
+        .getWipJobsData(); // You will need to create this function
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchJobs();
+      document.getElementById('refreshJobsBtn').addEventListener('click', fetchJobs);
+
+      document.getElementById('completeJobBtn').addEventListener('click', function() {
+        const jobId = document.getElementById('job-id').value;
+        const qty = Number(document.getElementById('completed-qty').value);
+
+        if (!jobId || !qty) {
+          M.toast({html: 'Job ID and Quantity are required.'});
+          return;
+        }
+
+        showLoader('jobLoader');
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if(response.success) {
+                M.toast({html: response.message});
+                fetchJobs(); // Refresh data
+            } else {
+                M.toast({html: 'Completion Failed: ' + response.message});
+            }
+            hideLoader('jobLoader');
+          })
+          .withFailureHandler(function(err) {
+            M.toast({html: 'Completion Error: ' + err.message});
+            hideLoader('jobLoader');
+          })
+          .completeWorkOrder(jobId, qty);
+      });
+    });
+  </script>
+</body>
+</html>

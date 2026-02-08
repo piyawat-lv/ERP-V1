@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <style>
+    .container { margin-top: 20px; }
+    #mrp-results { margin-top: 30px; display: none; }
+    .loader { display: none; margin: 20px auto; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h4>MRP Runner</h4>
+
+    <div class="card">
+      <div class="card-content">
+        <div class="row">
+          <div class="input-field col s9">
+            <input id="mrp-sku" type="text">
+            <label for="mrp-sku">Enter Finished Good SKU to run MRP</label>
+          </div>
+          <div class="input-field col s3">
+            <button id="runMrpBtn" class="btn">Run MRP</button>
+          </div>
+        </div>
+        <div id="mrpLoader" class="preloader-wrapper small active loader">
+            <div class="spinner-layer spinner-blue-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mrp-results" class="card">
+      <div class="card-content">
+        <span class="card-title">MRP Results for <b id="result-sku"></b></span>
+        <p><b>On-Hand:</b> <span id="result-onhand"></span></p>
+        <p><b>Gross Requirement (Demand):</b> <span id="result-gross"></span></p>
+        <p><b>Net Requirement:</b> <span id="result-net" class="red-text text-darken-2"></span></p>
+        <hr>
+        <h6>Component Demand</h6>
+        <table class="striped" id="component-demand-table">
+          <thead><tr><th>Component SKU</th><th>Required Quantity</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script>
+    function showLoader(id) { document.getElementById(id).style.display = 'block'; }
+    function hideLoader(id) { document.getElementById(id).style.display = 'none'; }
+
+    document.getElementById('runMrpBtn').addEventListener('click', function() {
+      const sku = document.getElementById('mrp-sku').value;
+      if (!sku) {
+        M.toast({html: 'SKU is required.'});
+        return;
+      }
+
+      showLoader('mrpLoader');
+      document.getElementById('mrp-results').style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            const results = response.results;
+            document.getElementById('result-sku').innerText = results.targetSku;
+            document.getElementById('result-onhand').innerText = results.onHand;
+            document.getElementById('result-gross').innerText = results.grossReq;
+            document.getElementById('result-net').innerText = results.netReq;
+
+            const tableBody = document.getElementById('component-demand-table').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+            results.componentDemand.forEach(comp => {
+              let row = tableBody.insertRow();
+              row.insertCell(0).innerHTML = comp.sku;
+              row.insertCell(1).innerHTML = comp.requiredQty;
+            });
+
+            document.getElementById('mrp-results').style.display = 'block';
+            M.toast({html: 'MRP Run Successful!'});
+          } else {
+            M.toast({html: 'MRP Failed: ' + response.message});
+          }
+          hideLoader('mrpLoader');
+        })
+        .withFailureHandler(function(err) {
+          M.toast({html: 'MRP Error: ' + err.message});
+          hideLoader('mrpLoader');
+        })
+        .runMrp(sku);
+    });
+  </script>
+</body>
+</html>

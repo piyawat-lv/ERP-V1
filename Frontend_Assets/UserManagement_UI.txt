@@ -1,0 +1,315 @@
+<style>
+  .module-container { max-width: 1000px; margin: 0 auto; padding-bottom: 50px; }
+  .card-custom { border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 25px; border: 1px solid #eee; }
+  
+  /* Permission Grid */
+  .perm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 15px; }
+  .perm-item { background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee; display: flex; align-items: center; cursor: pointer; transition:0.2s; }
+  .perm-item:hover { background: #f0f4ff; border-color: #5c6bc0; }
+  
+  /* Buttons */
+  .action-btn { cursor: pointer; margin: 0 4px; padding: 6px; border-radius: 50%; border: none; background: #f5f5f5; transition: 0.2s; display:inline-flex; align-items:center; justify-content:center; }
+  .btn-edit:hover { background-color: #e3f2fd; color: #1565C0; }
+  .btn-reset:hover { background-color: #fff3e0; color: #ef6c00; }
+  
+  /* Status Badge */
+  .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+  .dot-green { background-color: #4CAF50; }
+  .dot-red { background-color: #F44336; }
+</style>
+
+<div class="module-container">
+
+  <div class="card card-custom white">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h5 style="margin:0; font-weight:600; color:#333;">
+        <span id="formTitle">Create New User</span>
+      </h5>
+      <button id="btnCancelEdit" class="btn-flat red-text waves-effect" style="display:none;">Cancel Edit</button>
+    </div>
+
+    <input type="hidden" id="edit-user-id">
+    
+    <div class="row">
+      <div class="input-field col s12 m6">
+        <input id="u-username" type="text">
+        <label for="u-username">Username</label>
+      </div>
+      <div class="input-field col s12 m6">
+        <input id="u-password" type="password" placeholder="(Required for new user)">
+        <label for="u-password">Initial Password</label>
+      </div>
+      <div class="input-field col s12 m6">
+        <input id="u-fullname" type="text">
+        <label for="u-fullname">Full Name</label>
+      </div>
+      <div class="input-field col s12 m6">
+        <input id="u-dept" type="text">
+        <label for="u-dept">Department</label>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 20px; padding: 10px; background: #fafafa; border-radius: 8px; display: inline-block;">
+        <span style="margin-right: 15px; font-weight:600; color:#555;">User Status:</span>
+        <div class="switch" style="display:inline-block;">
+            <label>
+              <span class="red-text">Inactive (Block)</span>
+              <input type="checkbox" id="u-active" checked>
+              <span class="lever"></span>
+              <span class="green-text">Active (Allow)</span>
+            </label>
+        </div>
+    </div>
+
+    <label style="font-weight:600; font-size:1rem; color:#333; display:block; margin-top:10px;">Permissions</label>
+    <div class="perm-grid">
+      <label class="perm-item"><input type="checkbox" class="perm-chk" value="ITEM_MASTER"><span>📦 Item Master</span></label>
+      <label class="perm-item"><input type="checkbox" class="perm-chk" value="WAREHOUSE_WMS"><span>🏭 Warehouse</span></label>
+      <label class="perm-item"><input type="checkbox" class="perm-chk" value="BOM_MANAGEMENT"><span>🧩 BOM</span></label>
+      <label class="perm-item"><input type="checkbox" class="perm-chk" value="MRP_PLANNING"><span>📈 MRP</span></label>
+      <label class="perm-item"><input type="checkbox" class="perm-chk" value="MES_WIP"><span>⚙️ WIP Jobs</span></label>
+      <label class="perm-item"><input type="checkbox" class="perm-chk" value="REPORTING"><span>📊 Reports</span></label>
+      <label class="perm-item" style="border:1px solid #ffcdd2; background:#ffebee;">
+        <input type="checkbox" class="perm-chk" value="USER_MANAGEMENT"><span class="red-text">🛡️ Admin</span>
+      </label>
+    </div>
+
+    <div style="margin-top: 25px;">
+      <button id="btnSave" class="btn waves-effect waves-light blue darken-1" style="width:100%; border-radius:50px; height:45px; font-weight:bold;">Create User</button>
+    </div>
+  </div>
+
+  <div class="card white" style="border-radius:12px; border:1px solid #eee;">
+    <div style="padding: 15px 20px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+      <h6 style="font-weight:600; margin:0;">Existing Users</h6>
+      <button class="btn-flat waves-effect" onclick="loadUsers()"><i class="material-icons">refresh</i></button>
+    </div>
+    <table class="striped centered responsive-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Name</th>
+          <th>Dept</th>
+          <th>Permissions</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="user-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // Global Variables
+  let currentUserToken = sessionStorage.getItem('authToken');
+  
+  // Init
+  loadUsers();
+
+  // --- 1. LOAD DATA ---
+  // --- 1. LOAD DATA ---
+  function loadUsers() {
+    const tbody = document.getElementById('user-tbody');
+    tbody.innerHTML = '<tr><td colspan="6">Loading real data...</td></tr>';
+    
+    // เปลี่ยนชื่อตรงนี้ครับ จาก getAllUsers() -> api_getAllUsers()
+    google.script.run
+      .withSuccessHandler(renderTable)
+      .withFailureHandler(err => {
+         console.error(err);
+         tbody.innerHTML = '<tr><td colspan="6" class="red-text">Error: ' + err.message + '</td></tr>';
+      })
+      .api_getAllUsers(); // <--- ชื่อใหม่
+  }
+
+  // --- 1. RENDER TABLE (UPDATED) ---
+  // --- A. แก้ไขฟังก์ชัน renderTable ---
+  function renderTable(users) {
+    const tbody = document.getElementById('user-tbody');
+    tbody.innerHTML = '';
+    
+    if(!users || users.length === 0) {
+       tbody.innerHTML = '<tr><td colspan="6" class="center-align grey-text">No users found</td></tr>';
+       return;
+    }
+
+    users.forEach(u => {
+      // 1. จัดการ Badge สิทธิ์ (Permissions)
+      let permDisplay = '';
+      if (u.modules === 'ALL') {
+          permDisplay = '<span class="new badge blue" data-badge-caption="ADMIN"></span>';
+      } else {
+          // ถ้าไม่มี Module เลย ให้โชว์ No Access
+          const modList = u.modules ? u.modules.toString().split(',') : [];
+          const validMods = modList.filter(m => m.trim() !== ''); // กรองค่าว่าง
+          
+          if (validMods.length === 0) {
+              permDisplay = '<span class="grey-text">No Access</span>';
+          } else {
+              permDisplay = `<span class="grey-text text-darken-2">${validMods.length} Modules</span>`;
+          }
+      }
+      
+      // 2. จัดการสถานะ (Active/Inactive)
+      // รับค่า boolean มาตรงๆ จาก backend ได้เลย เพราะแก้แล้ว
+      let statusHtml = u.active ? 
+          `<span class="green-text valign-wrapper" style="font-weight:600; justify-content:center;"><span class="status-dot dot-green"></span>Active</span>` : 
+          `<span class="red-text valign-wrapper" style="font-weight:600; justify-content:center;"><span class="status-dot dot-red"></span>Inactive</span>`;
+
+      const tr = document.createElement('tr');
+      // เก็บ JSON ใส่ Dataset
+      tr.dataset.json = JSON.stringify(u); 
+
+      tr.innerHTML = `
+        <td style="font-weight:bold; color:#3949ab;">${u.username}</td>
+        <td>${u.fullName}</td>
+        <td>${u.department}</td>
+        <td>${permDisplay}</td>
+        <td>${statusHtml}</td>
+        <td>
+          <button class="action-btn btn-edit tooltipped" data-tooltip="Edit" onclick="editUser(this)">
+            <i class="material-icons text-blue">edit</i>
+          </button>
+          <button class="action-btn btn-reset tooltipped" data-tooltip="Reset Pass" onclick="resetPassword('${u.id}', '${u.username}')">
+            <i class="material-icons orange-text">lock_reset</i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+    
+    M.Tooltip.init(document.querySelectorAll('.tooltipped'));
+  }
+
+  // --- B. แก้ไขฟังก์ชัน editUser ---
+  // --- แก้ไขฟังก์ชัน editUser ให้รองรับค่าว่าง ---
+  window.editUser = function(btn) {
+    const tr = btn.closest('tr');
+    // ดึง JSON และป้องกัน Error
+    let user = {};
+    try {
+        user = JSON.parse(tr.dataset.json);
+    } catch(e) {
+        console.error("JSON Parse Error", e);
+        return;
+    }
+
+    // 1. เติมข้อมูลลงฟอร์ม (ใช้ || '' เพื่อกัน undefined โผล่ที่หน้าจอ)
+    document.getElementById('edit-user-id').value = user.id || '';
+    document.getElementById('u-username').value = user.username || '';
+    
+    // ถ้าเป็นขีด '-' ให้เคลียร์เป็นช่องว่างเพื่อให้กรอกง่าย
+    document.getElementById('u-fullname').value = (user.fullName === '-' || !user.fullName) ? '' : user.fullName;
+    document.getElementById('u-dept').value = (user.department === '-' || !user.department) ? '' : user.department;
+    
+    document.getElementById('u-password').value = ''; 
+    document.getElementById('u-password').placeholder = "(Leave empty to keep current)";
+    
+    // 2. สถานะ Active
+    document.getElementById('u-active').checked = user.active;
+
+    // 3. Permissions
+    document.querySelectorAll('.perm-chk').forEach(c => c.checked = false); // Reset
+
+    if (user.modules) {
+        const userMods = user.modules.toString().split(',').map(m => m.trim());
+        document.querySelectorAll('.perm-chk').forEach(chk => {
+           if (userMods.includes('ALL') || userMods.includes(chk.value)) {
+               chk.checked = true;
+           }
+        });
+    }
+
+    // ปรับ UI
+    document.getElementById('formTitle').innerText = 'Edit User: ' + (user.username || 'Unknown');
+    document.getElementById('btnSave').innerText = 'Update User';
+    document.getElementById('btnSave').classList.remove('blue');
+    document.getElementById('btnSave').classList.add('orange');
+    document.getElementById('btnCancelEdit').style.display = 'block';
+
+    M.updateTextFields();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // --- 3. RESET PASSWORD ---
+  window.resetPassword = function(id, name) {
+    Swal.fire({
+      title: `Reset Password?`,
+      html: `Reset password for <b>${name}</b> to <b>1234</b>?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ff9800',
+      confirmButtonText: 'Yes, Reset it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+         google.script.run.withSuccessHandler(res => {
+            if(res.success) Swal.fire('Reset!', res.message, 'success');
+            else Swal.fire('Error', res.message, 'error');
+         }).resetUserPassword(id, currentUserToken);
+      }
+    });
+  };
+
+  // --- 4. CANCEL EDIT ---
+  document.getElementById('btnCancelEdit').addEventListener('click', () => {
+    document.getElementById('edit-user-id').value = '';
+    document.getElementById('u-username').value = '';
+    document.getElementById('u-fullname').value = '';
+    document.getElementById('u-dept').value = '';
+    document.getElementById('u-password').value = '';
+    document.getElementById('u-password').placeholder = "(Required for new user)";
+    document.getElementById('u-active').checked = true;
+    document.querySelectorAll('.perm-chk').forEach(c => c.checked = false);
+
+    document.getElementById('formTitle').innerText = 'Create New User';
+    document.getElementById('btnSave').innerText = 'Create User';
+    document.getElementById('btnSave').classList.remove('orange');
+    document.getElementById('btnSave').classList.add('blue');
+    document.getElementById('btnCancelEdit').style.display = 'none';
+    M.updateTextFields();
+  });
+
+  // --- 5. SAVE (CREATE / UPDATE) ---
+  document.getElementById('btnSave').addEventListener('click', function() {
+    const id = document.getElementById('edit-user-id').value;
+    const username = document.getElementById('u-username').value;
+    const password = document.getElementById('u-password').value;
+    const fullName = document.getElementById('u-fullname').value;
+    const dept = document.getElementById('u-dept').value;
+    const isActive = document.getElementById('u-active').checked;
+    
+    const modules = Array.from(document.querySelectorAll('.perm-chk:checked')).map(c => c.value);
+
+    if(!username) { Swal.fire('Missing Info', 'Please enter a username', 'warning'); return; }
+    if(!id && !password) { Swal.fire('Missing Info', 'Password is required for new users', 'warning'); return; }
+
+    const btn = this;
+    const originalText = btn.innerText;
+    btn.disabled = true; 
+    btn.innerText = 'Processing...';
+
+    const userData = { id, username, password, fullName, department: dept, isActive };
+    
+    // Callback Handler
+    const handleResponse = (res) => {
+        btn.disabled = false;
+        btn.innerText = originalText;
+        if(res.success) {
+            Swal.fire('Success', res.message, 'success');
+            document.getElementById('btnCancelEdit').click(); // Reset form
+            loadUsers(); // Refresh table
+        } else {
+            Swal.fire('Failed', res.message, 'error');
+        }
+    };
+
+    if (id) {
+       google.script.run.withSuccessHandler(handleResponse).updateUser(userData, modules, currentUserToken);
+    } else {
+       google.script.run.withSuccessHandler(handleResponse).createUserWithModules(userData, modules, currentUserToken);
+    }
+  });
+</script>

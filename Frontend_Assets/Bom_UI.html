@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <style>
+    .container { margin-top: 20px; }
+    .dynamic-table { margin-top: 30px; }
+    .loader { display: none; margin: 20px auto; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h4>BOM Management</h4>
+
+    <!-- Define BOM Form -->
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">Define Bill of Materials</span>
+        <div class="row">
+          <div class="input-field col s12">
+            <input id="parent-sku" type="text">
+            <label for="parent-sku">Parent SKU (Finished Good)</label>
+          </div>
+        </div>
+        <h6>Components</h6>
+        <div id="components-container">
+          <!-- Dynamic component rows will be added here -->
+        </div>
+        <button id="addComponentBtn" class="btn-small green">+ Add Component</button>
+        <hr style="margin: 20px 0;">
+        <button id="saveBomBtn" class="btn">Save BOM</button>
+        <div id="bomLoader" class="preloader-wrapper small active loader">
+            <div class="spinner-layer spinner-green-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script>
+    function showLoader(id) { document.getElementById(id).style.display = 'block'; }
+    function hideLoader(id) { document.getElementById(id).style.display = 'none'; }
+
+    function addComponentRow() {
+      const container = document.getElementById('components-container');
+      const rowId = `component-row-${container.children.length}`;
+      const newRow = document.createElement('div');
+      newRow.classList.add('row');
+      newRow.id = rowId;
+      newRow.innerHTML = `
+        <div class="input-field col s6">
+          <input type="text" class="component-sku">
+          <label>Component SKU</label>
+        </div>
+        <div class="input-field col s4">
+          <input type="number" class="component-qty" value="1">
+          <label>Quantity</label>
+        </div>
+        <div class="input-field col s2">
+          <button class="btn-small red" onclick="document.getElementById('${rowId}').remove();">X</button>
+        </div>
+      `;
+      container.appendChild(newRow);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      addComponentRow(); // Start with one component row
+
+      document.getElementById('addComponentBtn').addEventListener('click', addComponentRow);
+
+      document.getElementById('saveBomBtn').addEventListener('click', function() {
+        const parentSku = document.getElementById('parent-sku').value;
+        if (!parentSku) {
+          M.toast({html: 'Parent SKU is required.'});
+          return;
+        }
+
+        const components = [];
+        const componentRows = document.querySelectorAll('#components-container .row');
+        componentRows.forEach(row => {
+          const sku = row.querySelector('.component-sku').value;
+          const quantity = Number(row.querySelector('.component-qty').value);
+          if (sku && quantity > 0) {
+            components.push({ sku, quantity, scrapFactor: 0 }); // scrapFactor can be added as another field if needed
+          }
+        });
+
+        if (components.length === 0) {
+          M.toast({html: 'At least one valid component is required.'});
+          return;
+        }
+
+        showLoader('bomLoader');
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if(response.success) {
+                M.toast({html: response.message});
+            } else {
+                M.toast({html: 'BOM Save Failed: ' + response.message});
+            }
+            hideLoader('bomLoader');
+          })
+          .withFailureHandler(function(err) {
+            M.toast({html: 'BOM Save Error: ' + err.message});
+            hideLoader('bomLoader');
+          })
+          .defineBom(parentSku, components);
+      });
+    });
+  </script>
+</body>
+</html>
