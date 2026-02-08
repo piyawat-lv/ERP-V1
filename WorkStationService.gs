@@ -1,6 +1,5 @@
 /**
- * WorkStationService.gs (Rev.01)
- * จัดการทะเบียนเครื่องจักร (Master Data Only)
+ * WorkStationService.gs (Rev.02 - Separate Capacity & UOM)
  */
 
 const WS_SHEET_NAME = "WorkStation";
@@ -15,8 +14,8 @@ function api_getAllWorkStations() {
     const lastRow = sheet.getLastRow();
     if (lastRow < 2) return [];
 
-    // อ่านข้อมูล 8 คอลัมน์ (A-H)
-    const data = sheet.getRange(2, 1, lastRow - 1, 8).getValues();
+    // อ่านข้อมูล 9 คอลัมน์ (A-I) เพิ่ม CapacityUOM เข้ามา
+    const data = sheet.getRange(2, 1, lastRow - 1, 9).getValues();
 
     return data.map(r => ({
       id: r[0],
@@ -24,9 +23,10 @@ function api_getAllWorkStations() {
       name: r[2],
       type: r[3],
       model: r[4],
-      capacity: r[5],
-      status: r[6],
-      created: r[7]
+      capacity: Number(r[5]) || 0, // บังคับเป็นตัวเลข
+      capacityUOM: r[6],           // [NEW] หน่วยนับ
+      status: r[7],
+      created: r[8]
     }));
   } catch (e) {
     console.error(e);
@@ -34,24 +34,21 @@ function api_getAllWorkStations() {
   }
 }
 
-// 2. เช็ค Duplicate Code (เหมือน Item Master)
+// 2. เช็ค Duplicate (Logic เดิม)
 function api_checkStationCode(code) {
   const ss = SpreadsheetApp.openById(ERP_CONFIG.INVENTORY_SPREADSHEET_ID);
   const sheet = ss.getSheetByName(WS_SHEET_NAME);
   if (!sheet) return { status: 'AVAILABLE', message: 'Sheet not found' };
-
+  
   const data = sheet.getDataRange().getValues();
   const inputCode = code.toUpperCase().trim();
+  // เช็ค Col B (Index 1)
   const exists = data.some(r => String(r[1]).toUpperCase() === inputCode);
 
-  if (!exists) {
-    return { status: 'AVAILABLE', message: '✅ รหัสนี้ใช้งานได้' };
-  } else {
-    return { status: 'DUPLICATE', message: '❌ รหัสซ้ำ!' };
-  }
+  return exists ? { status: 'DUPLICATE', message: '❌ รหัสซ้ำ!' } : { status: 'AVAILABLE', message: '✅ ใช้งานได้' };
 }
 
-// 3. บันทึกข้อมูล (Create / Update)
+// 3. บันทึกข้อมูล (Updated Rev.02)
 function api_saveWorkStation(wsData) {
   const lock = LockService.getScriptLock();
   try {
@@ -59,16 +56,15 @@ function api_saveWorkStation(wsData) {
     const ss = SpreadsheetApp.openById(ERP_CONFIG.INVENTORY_SPREADSHEET_ID);
     let sheet = ss.getSheetByName(WS_SHEET_NAME);
 
-    // สร้าง Sheet และ Header ถ้ายังไม่มี
+    // ถ้าไม่มี Sheet ให้สร้างใหม่พร้อม Header 9 ช่อง
     if (!sheet) {
       sheet = ss.insertSheet(WS_SHEET_NAME);
-      sheet.appendRow(['StationID', 'StationCode', 'StationName', 'Type', 'Model', 'Capacity', 'Status', 'CreatedAt']);
+      sheet.appendRow(['StationID', 'StationCode', 'StationName', 'Type', 'Model', 'Capacity', 'CapacityUOM', 'Status', 'CreatedAt']);
     }
 
     const data = sheet.getDataRange().getValues();
 
-    // --- Validate ---
-    if (!wsData.code || !wsData.name) return { success: false, message: 'Code & Name are required.' };
+    if (!wsData.code || !wsData.name) return { success: false, message: 'Code & Name required.' };
 
     // --- UPDATE ---
     if (wsData.id) {
@@ -80,15 +76,15 @@ function api_saveWorkStation(wsData) {
       sheet.getRange(row, 3).setValue(wsData.name);
       sheet.getRange(row, 4).setValue(wsData.type);
       sheet.getRange(row, 5).setValue(wsData.model);
-      sheet.getRange(row, 6).setValue(wsData.capacity); // Text or Number
-      sheet.getRange(row, 7).setValue(wsData.status);
+      sheet.getRange(row, 6).setValue(wsData.capacity);     // Col F
+      sheet.getRange(row, 7).setValue(wsData.capacityUOM);  // Col G [NEW]
+      sheet.getRange(row, 8).setValue(wsData.status);       // Col H
 
       return { success: true, message: 'Updated Work Station Successfully' };
     }
 
     // --- CREATE ---
     else {
-      // Check Duplicate
       const inputCode = wsData.code.toUpperCase().trim();
       if (data.some(r => String(r[1]).toUpperCase() === inputCode)) {
         return { success: false, message: 'Duplicate Station Code!' };
@@ -101,7 +97,8 @@ function api_saveWorkStation(wsData) {
         wsData.name,
         wsData.type,
         wsData.model,
-        wsData.capacity,
+        wsData.capacity || 0,
+        wsData.capacityUOM, // [NEW]
         wsData.status || 'Active',
         new Date()
       ]);
