@@ -9,14 +9,14 @@
     .module-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
     .section-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     
-    /* Table Inputs */
-    .tbl-input { border: 1px solid #e0e0e0 !important; height: 2rem !important; padding: 0 5px !important; border-radius: 2px !important; font-size: 0.9rem !important; margin: 0 !important; }
-    .tbl-input:focus { border: 1px solid #2196f3 !important; box-shadow: none !important; }
+    /* Input Styles */
+    .tbl-input { border: 1px solid #e0e0e0 !important; height: 2rem !important; padding: 0 5px !important; margin: 0 !important; font-size: 0.9rem !important; }
     .readonly-input { background-color: #f5f5f5; color: #616161; }
     
-    th { font-size: 0.85rem; color: #546e7a; background: #eceff1; }
-    td { padding: 5px 2px !important; }
-
+    /* Action Bar */
+    .action-bar { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border: 1px solid #bbdefb; }
+    
+    th { background: #eceff1; font-size: 0.85rem; color: #455a64; }
     #listView, #formView { display: none; }
   </style>
 </head>
@@ -24,16 +24,31 @@
 
 <div class="module-container">
 
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-     <h5 style="margin:0; font-weight:800; color:#37474f;">BOM Management (Rev.02)</h5>
-     <button class="btn btn-large blue darken-2" onclick="openCreate()"><i class="material-icons left">add</i> New BOM</button>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+     <h5 style="margin:0; font-weight:800; color:#37474f;">BOM Management (Rev.03)</h5>
+     <button class="btn btn-large blue darken-3" onclick="openCreate()">
+        <i class="material-icons left">add</i> New BOM
+     </button>
+  </div>
+
+  <div class="action-bar z-depth-1">
+      <i class="material-icons blue-text text-darken-2">search</i>
+      <div class="input-field" style="margin:0; flex-grow:1;">
+          <input id="quick-item-code" type="text" placeholder="Enter Item Code to Edit or Export (e.g. FG-001)" style="border-bottom:none !important; box-shadow:none !important; background:white; padding-left:10px; height:40px; border-radius:4px;">
+      </div>
+      <button class="btn orange darken-1 waves-effect" onclick="handleQuickEdit()">
+          <i class="material-icons left">edit</i> Edit BOM
+      </button>
+      <button class="btn green darken-1 waves-effect" onclick="handleQuickExport()">
+          <i class="material-icons left">file_download</i> Export CSV
+      </button>
   </div>
 
   <div id="listView" class="section-card">
      <table class="striped centered">
        <thead>
          <tr>
-           <th>BOM ID</th><th>Item Code</th><th>Item Name</th><th>Type</th><th>Batch Size</th><th>Rev</th><th>Status</th><th>Action</th>
+           <th>BOM ID</th><th>Item Code</th><th>Item Name</th><th>Batch Size</th><th>Rev</th><th>Status</th><th>Action</th>
          </tr>
        </thead>
        <tbody id="bom-list-tbody"></tbody>
@@ -52,62 +67,57 @@
        <div class="row" style="margin-bottom:0;">
           <div class="col s12 m3">
              <label>Item Code (FG/WIP)</label>
-             <input id="h-item-code" type="text" placeholder="Type Code..." onchange="lookupHeaderItem()">
+             <input id="h-item-code" type="text" onchange="lookupHeaderItem()">
           </div>
           <div class="col s12 m3">
-             <label>Item Name (Auto)</label>
+             <label>Item Name</label>
              <input id="h-item-name" type="text" readonly class="readonly-input">
           </div>
           <div class="col s12 m2">
              <label>Type</label>
-             <select id="h-type" class="browser-default" style="height: 2.5rem; border:1px solid #cfd8dc;">
-                 <option value="FG">FG</option>
-                 <option value="WIP">WIP</option>
-             </select>
+             <select id="h-type" class="browser-default"><option value="FG">FG</option><option value="WIP">WIP</option></select>
           </div>
           <div class="col s12 m2">
              <label>Batch Size</label>
-             <input id="h-size" type="number" placeholder="100">
+             <input id="h-size" type="number">
           </div>
           <div class="col s12 m2">
              <label>UOM</label>
-             <select id="h-uom" class="browser-default" style="height: 2.5rem; border:1px solid #cfd8dc;">
-                 <option value="KGS">KGS</option>
-                 <option value="PCS">PCS</option>
-             </select>
+             <select id="h-uom" class="browser-default"><option value="KGS">KGS</option><option value="PCS">PCS</option></select>
           </div>
        </div>
     </div>
 
     <div class="section-card">
        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h6 style="font-weight:700; margin:0;">BOM Details</h6>
+          <h6 style="font-weight:700; margin:0;">BOM Structure</h6>
           <button class="btn-small green" onclick="addDetailRow()"><i class="material-icons left">add</i> Add Row</button>
        </div>
        
-       <table class="centered">
-          <thead>
-             <tr>
-                <th style="width:5%">Seq</th>
-                <th style="width:15%">Work Description</th>
-                <th style="width:10%">Item Code</th>
-                <th style="width:15%">Item Name (Auto)</th>
-                <th style="width:10%">Station Code</th>
-                <th style="width:15%">Station Name (Auto)</th>
-                <th style="width:8%">Qty/Time</th>
-                <th style="width:7%">UOM</th>
-                <th style="width:10%">Parameters</th>
-                <th style="width:5%">Del</th>
-             </tr>
-          </thead>
-          <tbody id="detail-tbody"></tbody>
-       </table>
+       <div style="overflow-x:auto;">
+         <table class="centered">
+            <thead>
+               <tr>
+                  <th style="width:5%">Seq</th>
+                  <th style="width:20%">Work Desc</th>
+                  <th style="width:10%">Item Code</th>
+                  <th style="width:15%">Name</th>
+                  <th style="width:10%">Station Code</th>
+                  <th style="width:15%">Station Name</th>
+                  <th style="width:8%">Qty/Time</th>
+                  <th style="width:7%">UOM</th>
+                  <th style="width:10%">Params</th>
+                  <th style="width:5%">Del</th>
+               </tr>
+            </thead>
+            <tbody id="detail-tbody"></tbody>
+         </table>
+       </div>
     </div>
 
-    <button id="btnSave" class="btn-large blue darken-2 w-100" style="width:100%; margin-bottom:50px;">
+    <button id="btnSave" class="btn-large blue darken-2 w-100" style="margin-bottom:50px;">
         <i class="material-icons left">save</i> Save BOM
     </button>
-
   </div>
 
 </div>
@@ -116,7 +126,6 @@
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  // Global Data for VLOOKUP
   let masterItems = [];
   let masterStations = [];
 
@@ -133,99 +142,137 @@
      }).api_getMasterDataForBOM();
   }
 
-  // --- Header Logic ---
+  // --- [NEW] Quick Actions Logic ---
+
+  // 1. Handle Edit Button
+  function handleQuickEdit() {
+      const code = document.getElementById('quick-item-code').value.trim();
+      if(!code) { M.toast({html:'Please enter Item Code first'}); return; }
+
+      // Loading UI
+      Swal.fire({title: 'Searching BOM...', didOpen: () => Swal.showLoading()});
+
+      google.script.run.withSuccessHandler(res => {
+          Swal.close();
+          if(res.success) {
+              // ถ้าเจอ ให้เรียกฟังก์ชัน editBOM (Reuse logic เดิม)
+              editBOM(res.bomId);
+              document.getElementById('quick-item-code').value = ''; // clear
+          } else {
+              Swal.fire('Not Found', res.message, 'error');
+          }
+      }).api_findBOMByItemCode(code);
+  }
+
+  // 2. Handle Export Button
+  function handleQuickExport() {
+      const code = document.getElementById('quick-item-code').value.trim();
+      if(!code) { M.toast({html:'Please enter Item Code first'}); return; }
+
+      Swal.fire({title: 'Generating CSV...', didOpen: () => Swal.showLoading()});
+
+      google.script.run.withSuccessHandler(res => {
+          Swal.close();
+          if(res.success) {
+              downloadCSV(res.csvData, res.fileName);
+              Swal.fire('Success', 'Report Downloaded', 'success');
+          } else {
+              Swal.fire('Error', res.message, 'error');
+          }
+      }).api_getBOMReportCSV(code);
+  }
+
+  // Helper: Trigger Download
+  function downloadCSV(csvString, fileName) {
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", fileName);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+      }
+  }
+
+  // --- Core Functions (Reuse from Rev.02) ---
+  
   function lookupHeaderItem() {
       const code = document.getElementById('h-item-code').value.trim().toUpperCase();
       const item = masterItems.find(i => i.code === code);
       if(item) {
           document.getElementById('h-item-name').value = item.name;
-          document.getElementById('h-item-code').value = item.code; // Format Case
-      } else {
-          document.getElementById('h-item-name').value = '';
-          M.toast({html: 'Item Code not found', classes: 'red'});
+          document.getElementById('h-item-code').value = item.code; 
       }
   }
 
-  // --- Detail Logic ---
   function addDetailRow(data = null) {
       const tbody = document.getElementById('detail-tbody');
       const tr = document.createElement('tr');
-
-      const seq = data ? data.seq : '';
-      const desc = data ? data.workDesc : '';
-      const iCode = data ? data.itemCode : '';
-      const iName = data ? data.itemName : '';
-      const sCode = data ? data.stationCode : '';
-      const sName = data ? data.stationName : '';
-      const qty = data ? data.qty : '';
-      const uom = data ? data.uom : '';
-      const params = data ? data.params : '';
+      // ... (ใช้ Data เดิม) ...
+      const seq = data?.seq || '';
+      const desc = data?.workDesc || '';
+      const iCode = data?.itemCode || '';
+      const iName = data?.itemName || '';
+      const sCode = data?.stationCode || '';
+      const sName = data?.stationName || '';
+      const qty = data?.qty || '';
+      const uom = data?.uom || '';
+      const params = data?.params || '';
 
       tr.innerHTML = `
         <td><input type="text" class="tbl-input row-seq center-align" value="${seq}"></td>
         <td><input type="text" class="tbl-input row-desc" value="${desc}"></td>
-        
         <td><input type="text" class="tbl-input row-icode" value="${iCode}" onchange="lookupRowItem(this)"></td>
         <td><input type="text" class="tbl-input readonly-input row-iname" value="${iName}" readonly></td>
-        
         <td><input type="text" class="tbl-input row-scode" value="${sCode}" onchange="lookupRowStation(this)"></td>
         <td><input type="text" class="tbl-input readonly-input row-sname" value="${sName}" readonly></td>
-        
         <td><input type="number" class="tbl-input row-qty center-align" value="${qty}"></td>
         <td><input type="text" class="tbl-input row-uom center-align" value="${uom}"></td>
         <td><input type="text" class="tbl-input row-params" value="${params}"></td>
-        
         <td><i class="material-icons red-text tiny" style="cursor:pointer" onclick="this.closest('tr').remove()">close</i></td>
       `;
       tbody.appendChild(tr);
   }
 
-  // VLOOKUP for Row Item
   function lookupRowItem(input) {
       const code = input.value.trim().toUpperCase();
       const tr = input.closest('tr');
       const item = masterItems.find(i => i.code === code);
-      
       if(item) {
           input.value = item.code;
           tr.querySelector('.row-iname').value = item.name;
-          // Auto fill UOM if empty
           if(!tr.querySelector('.row-uom').value) tr.querySelector('.row-uom').value = item.uom;
       } else {
           tr.querySelector('.row-iname').value = '';
-          if(code) M.toast({html: 'Item not found', classes: 'red'});
       }
   }
 
-  // VLOOKUP for Row Station
   function lookupRowStation(input) {
       const code = input.value.trim().toUpperCase();
       const tr = input.closest('tr');
       const station = masterStations.find(s => s.code === code);
-      
       if(station) {
           input.value = station.code;
           tr.querySelector('.row-sname').value = station.name;
       } else {
           tr.querySelector('.row-sname').value = '';
-          if(code) M.toast({html: 'Station not found', classes: 'red'});
       }
   }
 
-  // --- CRUD Actions ---
   function openCreate() {
       document.getElementById('h-bom-id').value = '';
       document.getElementById('h-item-code').value = '';
       document.getElementById('h-item-name').value = '';
       document.getElementById('h-size').value = '';
       document.getElementById('detail-tbody').innerHTML = '';
-      addDetailRow(); // Add 1 empty row
-      
+      addDetailRow(); 
       toggleView('form');
   }
 
   function closeForm() { toggleView('list'); }
-
   function toggleView(view) {
       document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
       document.getElementById('formView').style.display = view === 'form' ? 'block' : 'none';
@@ -233,24 +280,13 @@
 
   function loadBOMList() {
       const tbody = document.getElementById('bom-list-tbody');
-      tbody.innerHTML = '<tr><td colspan="8">Loading...</td></tr>';
-      
+      tbody.innerHTML = '<tr><td colspan="7">Loading...</td></tr>';
       google.script.run.withSuccessHandler(list => {
           tbody.innerHTML = '';
-          if(list.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No Data</td></tr>'; return; }
-          
+          if(list.length === 0) { tbody.innerHTML = '<tr><td colspan="7">No Data</td></tr>'; return; }
           list.forEach(b => {
               const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td><b>${b.bomId}</b></td>
-                <td>${b.itemCode}</td>
-                <td class="left-align">${b.itemName}</td>
-                <td>${b.type}</td>
-                <td>${b.batchSize} ${b.batchUom}</td>
-                <td>${b.revision}</td>
-                <td>${b.status}</td>
-                <td><button class="btn-small btn-flat" onclick="editBOM('${b.bomId}')"><i class="material-icons">edit</i></button></td>
-              `;
+              tr.innerHTML = `<td>${b.bomId}</td><td>${b.itemCode}</td><td class="left-align">${b.itemName}</td><td>${b.batchSize} ${b.batchUom}</td><td>${b.revision}</td><td>${b.status}</td><td><button class="btn-small btn-flat" onclick="editBOM('${b.bomId}')"><i class="material-icons">edit</i></button></td>`;
               tbody.appendChild(tr);
           });
           toggleView('list');
@@ -260,8 +296,6 @@
   window.editBOM = function(id) {
       google.script.run.withSuccessHandler(data => {
           if(!data) return;
-          
-          // Header
           document.getElementById('h-bom-id').value = data.header.bomId;
           document.getElementById('h-item-code').value = data.header.itemCode;
           document.getElementById('h-item-name').value = data.header.itemName;
@@ -269,20 +303,15 @@
           document.getElementById('h-size').value = data.header.batchSize;
           document.getElementById('h-uom').value = data.header.batchUom;
           
-          // Details
           const tbody = document.getElementById('detail-tbody');
           tbody.innerHTML = '';
           data.details.forEach(d => addDetailRow(d));
-          
           toggleView('form');
       }).api_getBOMDetail(id);
   };
 
-  // --- SAVE ---
   document.getElementById('btnSave').addEventListener('click', function() {
       const btn = this;
-      
-      // Header Data
       const header = {
           bomId: document.getElementById('h-bom-id').value,
           itemCode: document.getElementById('h-item-code').value.trim(),
@@ -292,23 +321,19 @@
           batchUom: document.getElementById('h-uom').value,
           status: 'Active'
       };
+      if(!header.itemCode) { Swal.fire('Error', 'Input Item Code', 'error'); return; }
 
-      if(!header.itemCode) { Swal.fire('Error', 'Please enter Item Code', 'error'); return; }
-
-      // Details Data
       const details = [];
       document.querySelectorAll('#detail-tbody tr').forEach(tr => {
-          const itemCode = tr.querySelector('.row-icode').value.trim();
-          const stationCode = tr.querySelector('.row-scode').value.trim();
-          
-          // ต้องมีอย่างน้อย 1 อย่าง (Item หรือ Station)
-          if(itemCode || stationCode) {
+          const iCode = tr.querySelector('.row-icode').value.trim();
+          const sCode = tr.querySelector('.row-scode').value.trim();
+          if(iCode || sCode) {
               details.push({
                   seq: tr.querySelector('.row-seq').value,
                   workDesc: tr.querySelector('.row-desc').value,
-                  itemCode: itemCode,
+                  itemCode: iCode,
                   itemName: tr.querySelector('.row-iname').value,
-                  stationCode: stationCode,
+                  stationCode: sCode,
                   stationName: tr.querySelector('.row-sname').value,
                   qty: tr.querySelector('.row-qty').value,
                   uom: tr.querySelector('.row-uom').value,
@@ -318,19 +343,12 @@
       });
 
       btn.disabled = true; btn.innerText = 'Saving...';
-      
       google.script.run.withSuccessHandler(res => {
-          btn.disabled = false; btn.innerHTML = '<i class="material-icons left">save</i> Save BOM';
-          if(res.success) {
-              Swal.fire('Success', 'BOM Saved!', 'success');
-              closeForm();
-              loadBOMList();
-          } else {
-              Swal.fire('Error', res.message, 'error');
-          }
+          btn.disabled = false; btn.innerText = 'Save BOM';
+          if(res.success) { Swal.fire('Saved', '', 'success'); closeForm(); loadBOMList(); }
+          else { Swal.fire('Error', res.message, 'error'); }
       }).api_saveBOM({ header, details });
   });
-
 </script>
 
 </body>
